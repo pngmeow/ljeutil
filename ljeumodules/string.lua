@@ -54,3 +54,11 @@ local string_Explode = string.Explode
 function string.Split(str, delimiter)
     return string_Explode(delimiter, str)
 end
+
+function string.StartsWith(str, start)
+    return string_sub(str, 1, #start) == start
+end
+
+function string.EndsWith(str, endstr)
+    return endstr == "" or string_sub(str, -(#endstr)) == endstr
+end

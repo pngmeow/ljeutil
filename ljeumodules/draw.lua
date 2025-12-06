@@ -47,7 +47,6 @@ local draw = {
     RoundedBox = function(radius, x, y, width, height, color) end,
     Text = function(textdata) end, --> do not use this unless it is absolutely necessary
     TextShadow = function(textdata, distance, alpha) end, --> do not use this unless it is absolutely necessary
-
     TexturedQuad = function(texturedata) end,
     WordBox = function(bordersize, x, y, text, font, boxcolor, textcolor, xalign, yalign) end
 }
@@ -371,38 +370,3 @@ function draw.WordBox(bordersize, x, y, text, font, color, fontcolor, xalign, ya
 
     return width + bordersize * 2, height + bordersize * 2
 end
-
-local globalstart = 0
-local globalend = 0
-
-local faststart = 0
-local fastend = 0
-
-hook.pre("PostRender", "Test", function()
-    cam.Start2D()
-    render.PushRenderTarget(lje.util.rt)
-    if (FrameNumber() % 200 == 0) then
-        if (FrameNumber() % 400 == 0) then
-            faststart = SysTime()
-            for i = 1, 100000 do
-                --draw.SimpleTextOutlined("SimpleTextOutlined", "CreditsText", ScrW() / 2, ScrH() / 2, white, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP, 1, black)
-                draw.SimpleText("SimpleText", "CreditsText", ScrW() / 2, ScrH() / 2, white)
-                --draw.DrawText("The quick brown fox\tjumped over\t\tthe lazy dog\nnewline\n\nnewnewline", "CreditsText", ScrW() / 2, ScrH() / 2 + 150, white, TEXT_ALIGN_LEFT)
-            end
-            fastend = SysTime()
-
-            print(string.format("_G function: %s", globalend - globalstart))
-            print(string.format("Fast function: %s, being %sx faster\n", fastend - faststart, (globalend - globalstart) / (fastend - faststart)))
-        else
-            globalstart = SysTime()
-            for i = 1, 100000 do
-                --_G.draw.SimpleTextOutlined("SimpleTextOutlined", "CreditsText", ScrW() / 2, ScrH() / 2, white, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP, 1, black)
-                _G.draw.SimpleText("SimpleText", "CreditsText", ScrW() / 2, ScrH() / 2, white)
-                --_G.draw.DrawText("The quick brown fox\tjumped over\t\tthe lazy dog\nnewline\n\nnewnewline", "CreditsText", ScrW() / 2, ScrH() / 2, white, TEXT_ALIGN_LEFT)
-            end
-            globalend = SysTime()
-        end
-    end
-    render.PopRenderTarget()
-    cam.End2D()
-end)

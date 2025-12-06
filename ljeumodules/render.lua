@@ -62,11 +62,15 @@ end
 
 hook.post("PostRender", "__safert", function()
     cam.Start2D()
+        hook.callpre("DrawRT")
+
         local rt = render.GetRenderTarget()
         render.SetRenderTarget(nil)
             render.SetMaterial(safertmaterial)
             render.DrawScreenQuad(0, 0, ScrW(), ScrH())
         render.SetRenderTarget(rt)
+
+        hook.callpost("DrawRT")
 
         render.PushRenderTarget(safert)
             render.Clear(0, 0, 0, 0, true, true)

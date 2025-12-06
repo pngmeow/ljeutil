@@ -24,6 +24,9 @@ local unpack = unpack
 local originalcall = nil
 
 local hook = {
+    --> ljeutil events:
+        --> DrawRT - called when the safe rt is rendered to the screen 
+
     list = {}, --> event table
     disabled = false,
 
@@ -175,8 +178,12 @@ function hook.callpre(event, ...)
         return
     end
 
-    local sequential = hooks[PRE_HOOKS_SEQ]
     local length = hooks[PRE_HOOKS_LEN]
+    if (length == 0) then
+        return
+    end
+
+    local sequential = hooks[PRE_HOOKS_SEQ]
     local i = 1
     ::call_pre::
     sequential[i](...)
@@ -194,8 +201,12 @@ function hook.callpost(event, ...)
         return
     end
 
-    local sequential = hooks[POST_HOOKS_SEQ]
     local length = hooks[POST_HOOKS_LEN]
+    if (length == 0) then
+        return
+    end
+
+    local sequential = hooks[POST_HOOKS_SEQ]
     local i = 1
     ::call_post::
     sequential[i](...)

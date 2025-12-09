@@ -5,6 +5,8 @@
 local string_sub = string.sub
 local string_find = string.find
 
+local table_concat = table.concat
+
 function string.ToTable(str)
     str = tostring(str)
 
@@ -65,4 +67,13 @@ end
 
 function string.EndsWith(str, endstr)
     return endstr == "" or string_sub(str, -(#endstr)) == endstr
+end
+
+function string.Replace(str, tofind, toreplace)
+    local tbl = string_Explode(tofind, str)
+    if (tbl[1]) then
+        return table_concat(tbl, toreplace)
+    end
+
+    return str
 end

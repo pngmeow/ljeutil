@@ -21,7 +21,8 @@ List of functions which are added:
     Explode = function(separator, str, withpattern) end,
     Split = function(str, separator) end,
     StartsWith = function(str, start) end,
-    EndsWith = function(str, endstr) end
+    EndsWith = function(str, endstr) end,
+    Replace = function(str, tofind, toreplace) end
 }
 
 { --> math

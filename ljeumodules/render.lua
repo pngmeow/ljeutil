@@ -2,7 +2,7 @@
 --*> adds some cam functions that aren't normally present in the lje environment, also creates a safe render target to draw onto <*--
 --*> made by eyoko1 <*--
 
-local safertname = lje.util.random_string()
+local safertname = string.Replace(lje.util.random_string(), ".", "_")
 local safert = GetRenderTargetEx(safertname, ScrW(), ScrH(), RT_SIZE_DEFAULT, MATERIAL_RT_DEPTH_SHARED, bit.bor(16, 256, 32768), 0, IMAGE_FORMAT_BGRA8888)
 local safertmaterial = CreateMaterial( 
     lje.util.random_string(),

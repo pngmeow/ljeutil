@@ -78,10 +78,12 @@ function lje.util.color_strict(r, g, b, a)
 end
 
 local entity_DrawModel = ENTITY.DrawModel
+local hook_enable = hook.enable
+local hook_disable = hook.disable
 function lje.util.safe_draw_model(entity, flags)
-    hook.disable()
+    hook_disable()
     entity_DrawModel(entity, flags)
-    hook.enable()
+    hook_enable()
 end
 
 --> stripped-down copy of the color function - this is enough for it to be used with any c-function
@@ -97,3 +99,12 @@ function Color(r, g, b, a)
         a = a < 255 and a or 255
     }
 end
+
+hook.pre("InitPostEntity", "__ljeutil_localplayer", function()
+    hook.removepre("InitPostEntity", "__ljeutil_localplayer")
+    
+    local localplayer = LocalPlayer()
+    function LocalPlayer()
+        return localplayer
+    end
+end)

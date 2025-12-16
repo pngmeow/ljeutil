@@ -10,6 +10,8 @@
 local detour = lje.detour
 local enablehooks = lje.hooks.enable
 local disablehooks = lje.hooks.disable
+local enablemetatables = lje.env.enable_metatables
+local disablemetatables = lje.env.disable_metatables
 local registry = lje.util.get_registry()
 
 local environment = lje.env.get()
@@ -232,6 +234,8 @@ local function executepre(hooks, ...)
         return
     end
 
+    disablemetatables()
+
     local override = nil
     local callbacks = hooks[PRE_HOOKS_SEQ]
     local index = 1
@@ -242,6 +246,7 @@ local function executepre(hooks, ...)
     end
 
     if (index == length) then
+        enablemetatables()
         return override
     end
 
@@ -255,6 +260,8 @@ local function executepost(hooks, ...)
         return
     end
 
+    disablemetatables()
+
     local override = nil
     local callbacks = hooks[POST_HOOKS_SEQ]
     local index = 1
@@ -265,6 +272,7 @@ local function executepost(hooks, ...)
     end
 
     if (index == length) then
+        enablemetatables()
         return override
     end
 

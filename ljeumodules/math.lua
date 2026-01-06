@@ -34,3 +34,7 @@ function math.Distance(x1, y1, x2, y2)
     return math_sqrt(((x2 - x1) ^ 2) + ((y2 - y1) ^ 2))
 end
 math.Dist = math.Distance
+
+function Lerp(delta, a, b)
+    return a + ((b - a) * delta)
+end

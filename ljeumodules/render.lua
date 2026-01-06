@@ -17,7 +17,7 @@ local safertmaterial = CreateMaterial(
 lje.util.rendertarget = safert
 lje.util.rt = safert
 
-local cam2dtable = {type = "2D"}
+--local cam2dtable = {type = "2D"}
 local cam3dtable = {
     type = "3D",
     origin = Vector(0, 0, 0),
@@ -32,7 +32,8 @@ local cam3dtable = {
 
 local cam_Start = cam.Start
 function cam.Start2D()
-    cam_Start(cam2dtable)
+    --cam_Start(cam2dtable)
+    return cam_Start({type = "2D"}) --> tailcall optimisation + table is a constant
 end
 
 function cam.Start3D(pos, ang, fov, x, y, w, h, znear, zfar)
@@ -41,11 +42,11 @@ function cam.Start3D(pos, ang, fov, x, y, w, h, znear, zfar)
     cam3dtable.fov = fov or nil
 
     if (x and y and w and h) then
-		tab.x = x
-		tab.y = y
-		tab.w = w
-		tab.h = h
-		tab.aspect = w / h
+		cam3dtable.x = x
+		cam3dtable.y = y
+		cam3dtable.w = w
+		cam3dtable.h = h
+		cam3dtable.aspect = w / h
     elseif (cam3dtable.x) then
         cam3dtable.x = nil
         cam3dtable.y = nil
@@ -63,8 +64,8 @@ function cam.Start3D(pos, ang, fov, x, y, w, h, znear, zfar)
 end
 
 hook.post("PostRender", "__safert", function()
-	screenshot = render.IsTakingScreenshot()
-    if screenshot then return end
+    if (render.IsTakingScreenshot()) then return end
+
     cam.Start2D()
         hook.callpre("ljeutil/render")
 

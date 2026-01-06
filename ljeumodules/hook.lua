@@ -217,12 +217,25 @@ function hook.callpost(event, ...)
     goto call_post
 end
 
-function hook.disable()
+function hook.disable(disableljehooks)
+    if (disableljehooks == nil) then
+        disableljehooks = true
+    end
+
     hook.disabled = true
+    hook.disablelje = disableljehooks
 end
 
 function hook.enable()
     hook.disabled = false
+end
+
+function hook.disallowlua()
+    hook.ignorelua = true
+end
+
+function hook.allowlua()
+    hook.ignorelua = false
 end
 
 local function executepre(hooks, ...)
@@ -278,8 +291,15 @@ local function executepost(hooks, ...)
 end
 
 local hooklist = hook.list
+local debug_getinfo = debug.getinfo
 local function calldetour(event, gm, ...)
-    if (hook.disabled) then
+    local disabled = hook.disabled
+    local disablelje = hook.disablelje
+    if (disabled and disablelje) then
+        return
+    end
+
+    if (debug_getinfo(2, "") and hook.ignorelua) then --> if true, the callstack size is greater than 1 so lua is involved
         return
     end
 
@@ -288,13 +308,16 @@ local function calldetour(event, gm, ...)
         return originalcall(event, gm, ...)
     end
 
+    local a, b, c, d, e, f
     local override = nil
     
     disablehooks()
         override = executepre(hooks, ...) or override --> pre
     enablehooks()
 
-    local a, b, c, d, e, f = originalcall(event, gm, ...)
+    if (not disabled) then
+        a, b, c, d, e, f = originalcall(event, gm, ...)
+    end
 
     disablehooks()
         override = executepost(hooks, ...) or override --> post

@@ -20,15 +20,6 @@ end
 
 local environment = lje.env.get()
 
---> this is not used - its purpose is simply for basic documentation
-local __lje_util = {
-    iterate_players = function(callback) end, --> iterates over all players and calls the given callback with each player, excluding the local player
-    random_string = function(length) end, --> generates a random string with either the given length, or 32 characters if not specified
-    color_strict = function(r, g, b, a) end, --> very fast implementation of color - all arguments must be specified and must be numbers - values are still clamped
-    safe_draw_model = function(entity) end --> does entity:DrawModel, but doesn't call Pre/PostDrawPlayer
-}
-__lje_util = nil
-
 local playercount = player_GetCount()
 local players = player_GetAll()
 
@@ -123,23 +114,7 @@ function player.GetCount()
     return playercount
 end
 
-local util_is_player = lje.util.is_player
-hook.pre("NetworkEntityCreated", "__ljeutil_entities", function(entity)
-    if (util_is_player(entity)) then
-        playercount = playercount + 1
-        players[playercount] = entity
-
-        otherplayercount = otherplayercount + 1
-        otherplayers[otherplayercount] = entity
-    end
-end)
-
-hook.pre("InitPostEntity", "__ljeutil_entities", function()
-    hook.removepre("InitPostEntity", "__ljeutil_entities")
-    players = player_GetAll()
-    playercount = player_GetCount()
-end)
-
+local rawequal = rawequal
 local table_remove = table.remove
 local function searchandremove(tbl, value, count)
     if (count == 0) then
@@ -157,8 +132,29 @@ local function searchandremove(tbl, value, count)
     end
 end
 
-hook.pre("EntityRemoved", "__ljeutil_entities", function(entity)
+local util_is_player = lje.util.is_player
+hook.pre("NetworkEntityCreated", "__ljeutil_entities", function(entity)
     if (util_is_player(entity)) then
+        playercount = playercount + 1
+        players[playercount] = entity
+
+        otherplayercount = otherplayercount + 1
+        otherplayers[otherplayercount] = entity
+    end
+end)
+
+hook.pre("InitPostEntity", "__ljeutil_entities", function()
+    hook.removepre("InitPostEntity", "__ljeutil_entities")
+    players = player_GetAll()
+    playercount = player_GetCount()
+
+    otherplayers = player_GetAll()
+    otherplayercount = player_GetCount() - 1
+    searchandremove(otherplayers, LocalPlayer(), otherplayercount)
+end)
+
+hook.pre("EntityRemoved", "__ljeutil_entities", function(entity, fullupdate)
+    if (util_is_player(entity) and not fullupdate) then
         searchandremove(players, entity, playercount)
         searchandremove(otherplayers, entity, otherplayercount) --> this can be faster, but the performance gain isnt really worth the development time
         

@@ -132,6 +132,16 @@ local function searchandremove(tbl, value, count)
     end
 end
 
+
+function IsValid(obj)
+	if ( !obj ) then return false end
+
+	local isvalid = obj.IsValid
+	if ( !isvalid ) then return false end
+
+	return isvalid( obj )
+end
+
 local util_is_player = lje.util.is_player
 hook.pre("NetworkEntityCreated", "__ljeutil_entities", function(entity)
     if (util_is_player(entity)) then

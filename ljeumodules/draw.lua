@@ -221,7 +221,7 @@ function __getcachedheight(font)
 end
 
 function draw.GetFontHeight(font)
-    return cachedheights[font] or __getcachedheight()
+    return cachedheights[font] or __getcachedheight(font)
 end
 
 local blanktexture	= surface.GetTextureID("vgui/white")

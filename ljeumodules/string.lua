@@ -14,7 +14,7 @@ function string.ToTable(str)
 
     local length = #str
     local i = 1
-    ::totable::
+    ::totable_loop::
     tbl[i] = string_sub(str, i, i)
 
     if (i == length) then
@@ -22,11 +22,11 @@ function string.ToTable(str)
     end
 
     i = i + 1
-    goto totable
+    goto totable_loop
 end
 
 local totable = string.ToTable
-function string.Explode( separator, str, withpattern )
+function string.Explode(separator, str, withpattern)
 	if (separator == "") then return totable(str) end
 
     local length = #str

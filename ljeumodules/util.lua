@@ -132,14 +132,12 @@ local function searchandremove(tbl, value, count)
     end
 end
 
+local function falsey(obj)
+    return false
+end
 
 function IsValid(obj)
-	if ( !obj ) then return false end
-
-	local isvalid = obj.IsValid
-	if ( !isvalid ) then return false end
-
-	return isvalid( obj )
+    return obj ~= nil and (obj.IsValid or falsey)(obj)
 end
 
 local util_is_player = lje.util.is_player

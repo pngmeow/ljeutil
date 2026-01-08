@@ -243,9 +243,10 @@ function draw.RoundedBoxEx(bordersize, x, y, width, height, topleft, topright, b
     end
 
     bordersize = math_min(math_floor(bordersize), math_floor(width / 2), math_floor(height / 2))
-    surface.DrawRect(x + bordersize, y, width - bordersize * 2, height)
-    surface.DrawRect(x, y + bordersize, bordersize, height - bordersize * 2)
-    surface.DrawRect(x + w - bordersize, y + bordersize, bordersize, h - bordersize * 2)
+    local twobordersize = bordersize * 2
+    surface.DrawRect(x + bordersize, y, width - twobordersize, height)
+    surface.DrawRect(x, y + bordersize, bordersize, height - twobordersize)
+    surface.DrawRect(x + w - bordersize, y + bordersize, bordersize, h - twobordersize)
 
     local texture = corner8
     if (bordersize > 64) then
@@ -294,9 +295,10 @@ function draw.RoundedBox(bordersize, x, y, width, height, color)
     end
 
     bordersize = math_min(math_floor(bordersize), math_floor(width / 2), math_floor(height / 2))
-    surface.DrawRect(x + bordersize, y, width - bordersize * 2, height)
-    surface.DrawRect(x, y + bordersize, bordersize, height - bordersize * 2)
-    surface.DrawRect(x + w - bordersize, y + bordersize, bordersize, h - bordersize * 2)
+    local twobordersize = bordersize * 2
+    surface.DrawRect(x + bordersize, y, width - twobordersize, height)
+    surface.DrawRect(x, y + bordersize, bordersize, height - twobordersize)
+    surface.DrawRect(x + w - bordersize, y + bordersize, bordersize, h - twobordersize)
 
     local texture = corner8
     if (bordersize > 64) then
@@ -324,11 +326,16 @@ function draw.Text(textdata)
 end
 
 local Text = draw.Text
+local textshadowcolor = color_strict(0, 0, 0, 200)
+local textshadowpos = {0, 0}
 function draw.TextShadow(textdata, distance, alpha) --> i haven't really optimised this function since you shouldn't be using it
     local color = textdata.color
     local pos = textdata.pos
-    textdata.color = color_strict(0, 0, 0, alpha or 200)
-    textdata.pos = {pos[1] + distance, pos[2] + distance}
+    textshadowcolor.a = alpha or 200
+    textdata.color = textshadowcolor
+    textshadowpos[1] = pos[1] + distance
+    textshadowpos[2] = pos[2] + distance
+    textdata.pos = textshadowpos
 
     Text(textdata)
 
@@ -362,11 +369,13 @@ function draw.WordBox(bordersize, x, y, text, font, color, fontcolor, xalign, ya
 		y = y - (bordersize * 2 + height)
 	end
 
-    RoundedBox(bordersize, x, y, width + bordersize * 2, height + bordersize * 2, color)
+    local twobordersize = bordersize * 2
+
+    RoundedBox(bordersize, x, y, width + twobordersize, height + twobordersize, color)
 
     surface_SetTextColor(fontcolor.r, fontcolor.g, fontcolor.b, fontcolor.a)
     surface_SetTextPos(x + bordersize, y + bordersize)
     surface_DrawText(text)
 
-    return width + bordersize * 2, height + bordersize * 2
+    return width + twobordersize, height + twobordersize
 end

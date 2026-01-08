@@ -132,6 +132,14 @@ local function searchandremove(tbl, value, count)
     end
 end
 
+local function falsey(obj)
+    return false
+end
+
+function IsValid(obj)
+    return obj ~= nil and (obj.IsValid or falsey)(obj)
+end
+
 local util_is_player = lje.util.is_player
 hook.pre("NetworkEntityCreated", "__ljeutil_entities", function(entity)
     if (util_is_player(entity)) then

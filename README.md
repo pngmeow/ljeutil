@@ -83,7 +83,8 @@ A utility library for LJE re-adding many GLua functions, and optimising them, as
 }
 
 { --> _G
-    Color = function(r, g, b, a) end
+    Color = function(r, g, b, a) end,
+    IsValid = function(obj) end
 }
 
 { --> player

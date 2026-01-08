@@ -1,4 +1,4 @@
-# ljeutil - utility for lje
+# ljeutil - a utility library which adds many different default gmod functions implemented in lua, all of which are optimised
 
 [script]
 name = "ljeutil"

@@ -151,8 +151,8 @@ hook.pre("NetworkEntityCreated", "__ljeutil_entities", function(entity)
         otherplayercount = otherplayercount + 1
         otherplayers[otherplayercount] = entity
 
-        hook.pre("ljeutil/playerconnect")
-        hook.post("ljeutil/playerconnect")
+        hook.callpre("ljeutil/playerconnect")
+        hook.callpost("ljeutil/playerconnect")
     end
 end)
 
@@ -174,8 +174,8 @@ hook.pre("EntityRemoved", "__ljeutil_entities", function(entity, fullupdate)
         playercount = playercount - 1
         otherplayercount = otherplayercount - 1
 
-        hook.pre("ljeutil/playerdisconnect")
-        hook.post("ljeutil/playerdisconnect")
+        hook.callpre("ljeutil/playerdisconnect")
+        hook.callpost("ljeutil/playerdisconnect")
     end
 end)
 

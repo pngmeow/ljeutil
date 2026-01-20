@@ -107,9 +107,11 @@ A utility library for LJE re-adding many GLua functions, and optimising them, as
     rendertarget = GetRenderTargetEx(...), --> a render target which is safe to render to - this cannot be screengrabbed
     rt = GetRenderTargetEx(...), --> alias for lje.util.rendertarget - these are exactly the same
     iterate_players = function(callback) end, --> iterates over all players and calls the given callback with each player, excluding the local player
+    iterate_npcs = function(callback) end, --> fast way to iterate over every npc that is currently available to the client
     random_string = function(length) end, --> generates a random string with either the given length, or 32 characters if not specified
     color_strict = function(r, g, b, a) end, --> very fast implementation of color - all arguments must be specified and must be numbers - values are still clamped
-    is_player = function(entity) end --> should be used instead of ENTITY.IsPlayer or PLAYER.IsPlayer
+    is_player = function(entity) end, --> should be used instead of ENTITY.IsPlayer or PLAYER.IsPlayer
+    is_npc = function(entity) end --> should be used instead of ENTITY.IsNPC or NPC.IsNPC
 }
 
 { --> lje.media

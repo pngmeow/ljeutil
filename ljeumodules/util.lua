@@ -11,8 +11,10 @@ local table_concat = table.concat
 local tonumber = tonumber
 local ScrW = ScrW
 local ScrH = ScrH
+local rawequal = rawequal
 
 local ENTITY = cloned_mts.Entity
+local NPC = cloned_mts.NPC
 
 --> pre-allocate a table for random_string - this makes the function really fast
 local rstringtable = {}
@@ -27,6 +29,9 @@ local players = player_GetAll()
 
 local otherplayercount = player_GetCount()
 local otherplayers = player_GetAll()
+
+local npccount = 0
+local npcs = {}
 
 --> the given callback is called for every player other than the localplayer, and it is passed such player
 function lje.util.iterate_players(callback)
@@ -44,6 +49,23 @@ function lje.util.iterate_players(callback)
 
     i = i + 1
     goto iterate_players
+end
+
+function lje.util.iterate_npcs(callback)
+    if (npccount == 0) then
+        return
+    end
+
+    local i = 1
+    ::iterate_npcs::
+    callback(npcs[i])
+
+    if (i == npccount) then
+        return
+    end
+
+    i = i + 1
+    goto iterate_npcs
 end
 
 local randomstringcharacters = {" ", "!", "#", "$", "%", "&", "+", ",", "-", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "@", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "^", "_", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"}
@@ -94,6 +116,12 @@ function lje.util.is_player(entity)
     return entity_GetClass(entity) == "player"
 end
 
+local NPC___index = NPC.__original_index
+local NPC___tostring = NPC.__tostring
+function lje.util.is_npc(entity)
+    return rawequal(NPC___index(entity, "__tostring"), NPC___tostring)
+end
+
 --> stripped-down copy of the color function - this is enough for it to be used with any c-function
 function Color(r, g, b, a)
     r = tonumber(r)
@@ -116,7 +144,6 @@ function player.GetCount()
     return playercount
 end
 
-local rawequal = rawequal
 local table_remove = table.remove
 local function searchandremove(tbl, value, count)
     if (count == 0) then
@@ -139,10 +166,11 @@ local function falsey(obj)
 end
 
 function IsValid(obj)
-    return obj ~= nil and (obj.IsValid or falsey)(obj)
+    return obj and (obj.IsValid or falsey)(obj)
 end
 
 local util_is_player = lje.util.is_player
+local util_is_npc = lje.util.is_npc
 hook.pre("NetworkEntityCreated", "__ljeutil_entities", function(entity)
     if (util_is_player(entity)) then
         playercount = playercount + 1
@@ -153,6 +181,10 @@ hook.pre("NetworkEntityCreated", "__ljeutil_entities", function(entity)
 
         hook.callpre("ljeutil/playerconnect", entity)
         hook.callpost("ljeutil/playerconnect", entity)
+    elseif (util_is_npc(entity)) then
+        npccount = npccount + 1
+        npcs[npccount] = entity
+        lje.con_print("NPC added")
     end
 end)
 
@@ -176,6 +208,10 @@ hook.pre("EntityRemoved", "__ljeutil_entities", function(entity, fullupdate)
 
         hook.callpre("ljeutil/playerdisconnect", entity)
         hook.callpost("ljeutil/playerdisconnect", entity)
+    elseif (util_is_npc(entity)) then
+        searchandremove(npcs, entity, npccount)
+        npccount = npccount - 1
+        lje.con_print("NPC removed")
     end
 end)
 

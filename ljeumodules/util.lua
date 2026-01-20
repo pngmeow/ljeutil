@@ -9,6 +9,8 @@ local string_char = string.char
 local math_random = math.random
 local table_concat = table.concat
 local tonumber = tonumber
+local ScrW = ScrW
+local ScrH = ScrH
 
 local ENTITY = cloned_mts.Entity
 
@@ -148,6 +150,9 @@ hook.pre("NetworkEntityCreated", "__ljeutil_entities", function(entity)
 
         otherplayercount = otherplayercount + 1
         otherplayers[otherplayercount] = entity
+
+        hook.pre("ljeutil/playerconnect")
+        hook.post("ljeutil/playerconnect")
     end
 end)
 
@@ -168,6 +173,9 @@ hook.pre("EntityRemoved", "__ljeutil_entities", function(entity, fullupdate)
         
         playercount = playercount - 1
         otherplayercount = otherplayercount - 1
+
+        hook.pre("ljeutil/playerdisconnect")
+        hook.post("ljeutil/playerdisconnect")
     end
 end)
 
@@ -179,3 +187,18 @@ hook.pre("InitPostEntity", "__ljeutil_localplayer", function()
         return localplayer
     end
 end)
+
+local screenwidth = ScrW()
+local screenheight = ScrH()
+hook.pre("PreRender", "__ljeutil_screensize", function()
+    screenwidth = ScrW()
+    screenheight = ScrH()
+end)
+
+function ScrW()
+    return screenwidth
+end
+
+function ScrH()
+    return screenheight
+end

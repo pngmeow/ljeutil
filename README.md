@@ -12,7 +12,9 @@ A utility library for LJE re-adding many GLua functions, and optimising them, as
 --> format: {comment, name, ...args}
 {
     --> called when lje.util.rendertarget is drawn to the screen
-    "ljeutil/render"
+    "ljeutil/render",
+    "ljeutil/playerconnect",
+    "ljeutil/playerdisconnect"
 }
 ```
 
@@ -84,7 +86,10 @@ A utility library for LJE re-adding many GLua functions, and optimising them, as
 
 { --> _G
     Color = function(r, g, b, a) end,
-    IsValid = function(obj) end
+    IsValid = function(obj) end,
+    LocalPlayer = function() end, --> optimised - behaviour is not different
+    ScrW = function() end, --> optimised - behaviour is not different
+    ScrH = function() end --> optimised - behaviour is not different
 }
 
 { --> player

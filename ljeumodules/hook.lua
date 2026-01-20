@@ -144,7 +144,7 @@ function hook.removepre(event, identifier)
     table.remove(hooks[PRE_HOOKS_SEQ], index)
 
     if (length == 0 and hooks[POST_HOOKS_LEN] == 0) then
-        hooks.list[event] = nil
+        hook.list[event] = nil
     end
 end
 
@@ -164,7 +164,7 @@ function hook.removepost(event, identifier)
     table.remove(hooks[POST_HOOKS_SEQ], index)
 
     if (length == 0 and hooks[PRE_HOOKS_LEN] == 0) then
-        hooks.list[event] = nil
+        hook.list[event] = nil
     end
 end
 

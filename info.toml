@@ -4,4 +4,5 @@
 name = "ljeutil"
 version = "1.0.0"
 author = "Eyoko1"
+url = "https://github.com/Eyoko1/ljeutil/"
 dependencies = []

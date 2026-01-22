@@ -224,7 +224,7 @@ function draw.GetFontHeight(font)
     return cachedheights[font] or __getcachedheight(font)
 end
 
-local blanktexture	= surface.GetTextureID("vgui/white")
+local blanktexture = surface.GetTextureID("vgui/white")
 function draw.NoTexture()
     surface_SetTexture(blanktexture)
 end
@@ -244,9 +244,9 @@ function draw.RoundedBoxEx(bordersize, x, y, width, height, topleft, topright, b
 
     bordersize = math_min(math_floor(bordersize), math_floor(width / 2), math_floor(height / 2))
     local twobordersize = bordersize * 2
-    surface.DrawRect(x + bordersize, y, width - twobordersize, height)
-    surface.DrawRect(x, y + bordersize, bordersize, height - twobordersize)
-    surface.DrawRect(x + w - bordersize, y + bordersize, bordersize, h - twobordersize)
+    surface_DrawRect(x + bordersize, y, width - twobordersize, height)
+    surface_DrawRect(x, y + bordersize, bordersize, height - twobordersize)
+    surface_DrawRect(x + w - bordersize, y + bordersize, bordersize, h - twobordersize)
 
     local texture = corner8
     if (bordersize > 64) then
@@ -296,9 +296,9 @@ function draw.RoundedBox(bordersize, x, y, width, height, color)
 
     bordersize = math_min(math_floor(bordersize), math_floor(width / 2), math_floor(height / 2))
     local twobordersize = bordersize * 2
-    surface.DrawRect(x + bordersize, y, width - twobordersize, height)
-    surface.DrawRect(x, y + bordersize, bordersize, height - twobordersize)
-    surface.DrawRect(x + w - bordersize, y + bordersize, bordersize, h - twobordersize)
+    surface_DrawRect(x + bordersize, y, width - twobordersize, height)
+    surface_DrawRect(x, y + bordersize, bordersize, height - twobordersize)
+    surface_DrawRect(x + w - bordersize, y + bordersize, bordersize, h - twobordersize)
 
     local texture = corner8
     if (bordersize > 64) then

@@ -69,11 +69,10 @@ hook.post("PostRender", "__safert", function()
     cam.Start2D()
         hook.callpre("ljeutil/render")
 
-        local rt = render.GetRenderTarget()
-        render.SetRenderTarget(nil)
+        render.PushRenderTarget(nil) --> push main frame  buffer
             render.SetMaterial(safertmaterial)
             render.DrawScreenQuad(0, 0, ScrW(), ScrH())
-        render.SetRenderTarget(rt)
+        render.PopRenderTarget()
 
         hook.callpost("ljeutil/render")
 
@@ -83,6 +82,6 @@ hook.post("PostRender", "__safert", function()
     cam.End2D()
 end)
 
-render.PushRenderTarget()
+render.PushRenderTarget(safert)
     render.Clear(0, 0, 0, 0, true, true)
 render.PopRenderTarget()

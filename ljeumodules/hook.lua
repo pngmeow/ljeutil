@@ -291,47 +291,66 @@ local function executepost(hooks, ...)
 end
 
 local hooklist = hook.list
-local debug_getinfo = debug.getinfo
+--local debug_getinfo = debug.getinfo
+local is_lua_involved = lje.env.is_lua_involved
+local ignore_fn_once = lje.hooks.ignore_fn_once
 local function calldetour(event, gm, ...)
-    local disabled = hook.disabled
-    local disablelje = hook.disablelje
-    if (disabled and disablelje) then
-        return
-    end
+    if (hook.disabled) then
+        if (hook.disablelje) then
+            return
+        end
 
-    if (debug_getinfo(2, "") and hook.ignorelua) then --> if true, the callstack size is greater than 1 so lua is involved
-        return
-    end
+        if (hook.ignorelua and is_lua_involved()) then
+            return originalcall(event, gm, ...)
+        end
 
-    local hooks = hooklist[event]
-    if (not hooks) then
-        return originalcall(event, gm, ...)
-    end
+        local hooks = hooklist[event]
+        if (not hooks) then
+            return originalcall(event, gm, ...)
+        end
 
-    local a, b, c, d, e, f
-    local override = nil
-    
-    disablehooks()
-        override = executepre(hooks, ...) or override --> pre
-    enablehooks()
-
-    if (not disabled) then
-        a, b, c, d, e, f = originalcall(event, gm, ...)
-    end
-
-    disablehooks()
-        override = executepost(hooks, ...) or override --> post
+        disablehooks()
+            local override = executepre(hooks, ...)
+            override = executepost(hooks, ...) or override
+        enablehooks()
 
         if (override) then
-            a, b, c, d, e, f = unpack(override) --> this is a bit slow, but other options are probably slower and returning values in lje hooks should be rare anyways
+            ignore_fn_once(unpack)
+            return unpack(override)
         end
-    enablehooks()
 
-    return a, b, c, d, e, f
+        --> no return
+    else
+        if (hook.ignorelua and is_lua_involved()) then
+            return originalcall(event, gm, ...)
+        end
+
+        local hooks = hooklist[event]
+        if (not hooks) then
+            return originalcall(event, gm, ...)
+        end
+
+        disablehooks()
+            local override = executepre(hooks, ...)
+        enablehooks()
+
+        local a, b, c, d, e, f = originalcall(event, gm, ...)
+
+        disablehooks()
+            override = executepost(hooks, ...) or override
+        enablehooks()
+
+        if (override) then
+            ignore_fn_once(unpack)
+            return unpack(override)
+        end
+
+        return a, b, c, d, e, f
+    end
 end
 
 --> searches the registry for hook.Call - this is called repeatedly until hook.Call is found
-local detoured = {}
+local detoured = setmetatable({}, {__mode = "v"})
 local function searchregistry()
     local key, value = next(registry)
     ::r_search:: --> gotos are really fast
@@ -339,7 +358,7 @@ local function searchregistry()
         if (not detoured[key] and isfunction(value)) then
             --> we need to detour all functions, not just lua ones since servers can do some
             --> trickery where they set hook.Call to an invalid value at first to mess with
-            --> people detouring hook.Calls
+            --> people detouring hook.Call
             local original = value
             local originalkey = key
             detoured[originalkey] = original
@@ -367,6 +386,11 @@ local function searchregistry()
                         end
                         r_key, r_value = next(detoured, r_key)
                         goto r_restore
+                    end
+
+                    if (IsValid(LocalPlayer())) then
+                        hook.callpre("InitPostEntity")
+                        hook.callpost("InitPostEntity")
                     end
 
                     detoured = {}

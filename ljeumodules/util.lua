@@ -24,6 +24,8 @@ end
 
 local environment = lje.env.get()
 
+local localplayer = LocalPlayer()
+
 local playercount = player_GetCount()
 local players = player_GetAll()
 
@@ -171,7 +173,7 @@ end
 
 local util_is_player = lje.util.is_player
 local util_is_npc = lje.util.is_npc
-hook.pre("NetworkEntityCreated", "__ljeutil_entities", function(entity)
+hook.pre("OnEntityCreated", "__ljeutil_entities", function(entity)
     if (util_is_player(entity)) then
         playercount = playercount + 1
         players[playercount] = entity
@@ -184,43 +186,24 @@ hook.pre("NetworkEntityCreated", "__ljeutil_entities", function(entity)
     elseif (util_is_npc(entity)) then
         npccount = npccount + 1
         npcs[npccount] = entity
-        lje.con_print("NPC added")
     end
-end)
-
-hook.pre("InitPostEntity", "__ljeutil_entities", function()
-    hook.removepre("InitPostEntity", "__ljeutil_entities")
-    players = player_GetAll()
-    playercount = player_GetCount()
-
-    otherplayers = player_GetAll()
-    otherplayercount = player_GetCount() - 1
-    searchandremove(otherplayers, LocalPlayer(), otherplayercount)
 end)
 
 hook.pre("EntityRemoved", "__ljeutil_entities", function(entity, fullupdate)
-    if (util_is_player(entity) and not fullupdate) then
-        searchandremove(players, entity, playercount)
-        searchandremove(otherplayers, entity, otherplayercount) --> this can be faster, but the performance gain isnt really worth the development time
-        
-        playercount = playercount - 1
-        otherplayercount = otherplayercount - 1
+    if (util_is_player(entity)) then
+        if (not fullupdate and not rawequal(entity, localplayer)) then
+            searchandremove(players, entity, playercount)
+            searchandremove(otherplayers, entity, otherplayercount) --> this can be faster, but the performance gain isnt really worth the development time
+            
+            playercount = playercount - 1
+            otherplayercount = otherplayercount - 1
 
-        hook.callpre("ljeutil/playerdisconnect", entity)
-        hook.callpost("ljeutil/playerdisconnect", entity)
+            hook.callpre("ljeutil/playerdisconnect", entity)
+            hook.callpost("ljeutil/playerdisconnect", entity)
+        end
     elseif (util_is_npc(entity)) then
         searchandremove(npcs, entity, npccount)
         npccount = npccount - 1
-        lje.con_print("NPC removed")
-    end
-end)
-
-hook.pre("InitPostEntity", "__ljeutil_localplayer", function()
-    hook.removepre("InitPostEntity", "__ljeutil_localplayer")
-    
-    local localplayer = LocalPlayer()
-    function LocalPlayer()
-        return localplayer
     end
 end)
 
@@ -237,4 +220,27 @@ end
 
 function ScrH()
     return screenheight
+end
+
+hook.pre("InitPostEntity", "__ljeutil_localplayer", function()
+    localplayer = LocalPlayer()
+    function LocalPlayer()
+        return localplayer
+    end
+
+    playercount = player_GetCount()
+    players = player_GetAll()
+    
+    otherplayercount = player_GetCount()
+    otherplayers = player_GetAll()
+    
+    searchandremove(otherplayers, localplayer, otherplayercount)
+    otherplayercount = otherplayercount - 1
+end)
+
+for i, entity in ipairs(ents.GetAll()) do
+    if (lje.util.is_npc(entity)) then
+        npccount = npccount + 1
+        npcs[npccount] = entity
+    end
 end

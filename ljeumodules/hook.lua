@@ -300,7 +300,7 @@ local function calldetour(event, gm, ...)
             return
         end
 
-        if (hook.ignorelua and is_lua_involved()) then
+        if (hook.ignorelua and is_lua_involved(1)) then
             return originalcall(event, gm, ...)
         end
 
@@ -321,7 +321,7 @@ local function calldetour(event, gm, ...)
 
         --> no return
     else
-        if (hook.ignorelua and is_lua_involved()) then
+        if (hook.ignorelua and is_lua_involved(1)) then
             return originalcall(event, gm, ...)
         end
 

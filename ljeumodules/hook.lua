@@ -75,10 +75,15 @@ function hook.pre(event, identifier, callback)
 
     local hooks = hook.list[event]
     if (hooks) then
-        local length = hooks[PRE_HOOKS_LEN] + 1
-        hooks[PRE_HOOKS_LEN] = length
-        hooks[PRE_HOOKS_SEQ][length] = callback
-        hooks[PRE_HOOKS_MAP][identifier] = length
+        local index = hooks[PRE_HOOKS_MAP][identifier]
+        if (index) then
+            hooks[PRE_HOOKS_SEQ][index] = callback
+        else
+            local length = hooks[PRE_HOOKS_LEN] + 1
+            hooks[PRE_HOOKS_LEN] = length
+            hooks[PRE_HOOKS_SEQ][length] = callback
+            hooks[PRE_HOOKS_MAP][identifier] = length
+        end
     else
         hook.list[event] = {
             {callback}, --> pre hooks (sequential table)
@@ -105,10 +110,15 @@ function hook.post(event, identifier, callback)
 
     local hooks = hook.list[event]
     if (hooks) then
-        local length = hooks[POST_HOOKS_LEN] + 1
-        hooks[POST_HOOKS_LEN] = length
-        hooks[POST_HOOKS_SEQ][length] = callback
-        hooks[POST_HOOKS_MAP][identifier] = length
+        local index = hooks[PRE_HOOKS_MAP][identifier]
+        if (index) then
+            hooks[POST_HOOKS_SEQ][index] = callback
+        else
+            local length = hooks[POST_HOOKS_LEN] + 1
+            hooks[POST_HOOKS_LEN] = length
+            hooks[POST_HOOKS_SEQ][length] = callback
+            hooks[POST_HOOKS_MAP][identifier] = length
+        end
     else
         hook.list[event] = {
             {}, --> pre hooks (sequential table)

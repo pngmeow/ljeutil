@@ -65,6 +65,44 @@ local function gethookcount()
     return hookcount
 end
 
+local disabled = false
+local disablelje = false
+--> Call this to allow the default gmod callbacks to be executed - Do not call this while a hook is in progress as nothing will happen; see below for an alternative
+--> If in hook.pre, use hook.immediatereturn instead
+--> If 'disableljehooks' is true or nil, no hooks at all will be called (neither ones registered with hook.pre/post, nor the default gmod library ones with hook.Add)
+function hook.disable(disableljehooks)
+    disabled = true
+    if (disableljehooks == nil) then
+        disablelje = true
+    else
+        disablelje = disableljehooks
+    end
+end
+
+--> Call this to enable the default gmod callbacks being executed - See warning with hook.disable
+function hook.enable()
+    disabled = false
+end
+
+local ignorelua = true
+--> Call this to disallow lua functions to be in the callstack when a hook is called
+function hook.disallowlua()
+    ignorelua = true
+end
+
+--> Call this to allow lua functions to be in the callstack when a hook is called
+function hook.allowlua()
+    ignorelua = false
+end
+
+local doimmediatereturn = false
+local imm_a, imm_b, imm_c, imm_d, imm_e, imm_f = nil, nil, nil, nil, nil, nil
+--> Call this in hook.pre events to allow other lje hooks to be called, but overwrite their returns and prevent the default gmod callbacks from being executed
+function hook.immediatereturn(a, b, c, d, e, f)
+    doimmediatereturn = true
+    imm_a, imm_b, imm_c, imm_d, imm_e, imm_f = a, b, c, d, e, f
+end
+
 function hook.pre(event, identifier, callback)
     local generated = false
     if (isfunction(identifier)) then
@@ -227,27 +265,6 @@ function hook.callpost(event, ...)
     goto call_post
 end
 
-function hook.disable(disableljehooks)
-    if (disableljehooks == nil) then
-        disableljehooks = true
-    end
-
-    hook.disabled = true
-    hook.disablelje = disableljehooks
-end
-
-function hook.enable()
-    hook.disabled = false
-end
-
-function hook.disallowlua()
-    hook.ignorelua = true
-end
-
-function hook.allowlua()
-    hook.ignorelua = false
-end
-
 local function executepre(hooks, ...)
     local length = hooks[PRE_HOOKS_LEN]
     if (length == 0) then
@@ -256,18 +273,19 @@ local function executepre(hooks, ...)
 
     disablemetatables()
 
+    local a1, b1, c1, d1, e1, f1
     local override = nil
     local callbacks = hooks[PRE_HOOKS_SEQ]
     local index = 1
     ::h_execute_pre::
-    local a, b, c, d, e, f = callbacks[index](...)
+    local a2, b2, c2, d2, e2, f2 = callbacks[index](...)
     if (a) then
-        override = {a, b, c, d, e, f}
+        a1, b1, c1, d1, e1, f1 = a2, b2, c2, d2, e2, f2
     end
 
     if (index == length) then
         enablemetatables()
-        return override
+        return a1, b1, c1, d1, e1, f1
     end
 
     index = index + 1
@@ -282,18 +300,19 @@ local function executepost(hooks, ...)
 
     disablemetatables()
 
+    local a1, b1, c1, d1, e1, f1
     local override = nil
     local callbacks = hooks[POST_HOOKS_SEQ]
     local index = 1
     ::h_execute_post::
-    local a, b, c, d, e, f = callbacks[index](...)
+    local a2, b2, c2, d2, e2, f2 = callbacks[index](...)
     if (a) then
-        override = {a, b, c, d, e, f}
+        a1, b1, c1, d1, e1, f1 = a2, b2, c2, d2, e2, f2
     end
 
     if (index == length) then
         enablemetatables()
-        return override
+        return a1, b1, c1, d1, e1, f1
     end
 
     index = index + 1
@@ -305,12 +324,12 @@ local hooklist = hook.list
 local is_lua_involved = lje.env.is_lua_involved
 local ignore_fn_once = lje.hooks.ignore_fn_once
 local function calldetour(event, gm, ...)
-    if (hook.disabled) then
-        if (hook.disablelje) then
+    if (disabled) then
+        if (disablelje) then
             return
         end
 
-        if (hook.ignorelua and is_lua_involved(1)) then
+        if (ignorelua and is_lua_involved(1)) then
             return originalcall(event, gm, ...)
         end
 
@@ -320,18 +339,18 @@ local function calldetour(event, gm, ...)
         end
 
         disablehooks()
-            local override = executepre(hooks, ...)
-            override = executepost(hooks, ...) or override
+            local a, b, c, d, e, f = executepre(hooks, ...)
+            if (doimmediatereturn) then
+                doimmediatereturn = false
+                enablehooks()
+                return imm_a, imm_b, imm_c, imm_d, imm_e, imm_f
+            end
+            a, b, c, d, e, f = executepost(hooks, ...) or override
         enablehooks()
 
-        if (override) then
-            ignore_fn_once(unpack)
-            return unpack(override)
-        end
-
-        --> no return
+        return a, b, c, d, e, f
     else
-        if (hook.ignorelua and is_lua_involved(1)) then
+        if (ignorelua and is_lua_involved(1)) then
             return originalcall(event, gm, ...)
         end
 
@@ -341,13 +360,18 @@ local function calldetour(event, gm, ...)
         end
 
         disablehooks()
-            local override = executepre(hooks, ...)
+            local a, b, c, d, e, f = executepre(hooks, ...)
+            if (doimmediatereturn) then
+                doimmediatereturn = false
+                enablehooks()
+                return imm_a, imm_b, imm_c, imm_d, imm_e, imm_f
+            end
         enablehooks()
 
-        local a, b, c, d, e, f = originalcall(event, gm, ...)
+        a, b, c, d, e, f = originalcall(event, gm, ...)
 
         disablehooks()
-            override = executepost(hooks, ...) or override
+            a, b, c, d, e, f = executepost(hooks, ...) or override
         enablehooks()
 
         if (override) then

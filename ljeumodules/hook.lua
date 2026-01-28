@@ -1,27 +1,16 @@
 --*> hook.lua <*--
---*> lje hook library made by detouring hook.Call inside the registry <*--
+--*> custom hook library <*--
 --*> made by eyoko1 <*--
 
---> handles detouring hook.Call
---> there is quite a lot of duplicated code here since the alternatives are slower and a hooking library should be designed with speed in mind
---> both the hook library itself and the registry searching method are optimised a pretty good amount
-
 --> unpack is never used because it is really slow
-
---> micro-optimisations since a lot of functions are detoured
-local detour = lje.detour
-local registry = lje.util.get_registry()
 
 local environment = lje.env.get()
 local gmgui = gmgui
 
-local next = next
 local isfunction = isfunction
-local rawequal = rawequal
-local select = select
 
 local hook = {
-    list = {}, --> event table
+    list = {}, --> event table - you probably shouldn't mess with this - this does not use the same format as the base gmod hook library
     disabled = false,
 
     pre = function(event, identifier, callback) end, --> adds an event to be run before normal gmod callbacks are ran for an event

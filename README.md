@@ -76,7 +76,10 @@ A utility library for LJE re-adding many GLua functions, and optimising them, as
     callpost = function(event, ...) end, --> executes lje callbacks for the given post hook event
 
     disable = function(disableljehooks) end, --> stops hooks from running - useful when re-rendering the scene, or using DrawModel - if disableljehooks is false (must be specified) then hooks registered with this library will still be called, otherwise if true or not specified, they will not be called
-    enable = function() end --> re-enables hooks
+    enable = function() end, --> re-enables hooks
+
+    disallowlua = function() end, --> sets a flag to true that prevents lje hooks from being called when lua is in the callstack (any lua, not just foreign lua)
+    allowlua = function() end --> sets the above flag to false
 }
 
 { --> cam

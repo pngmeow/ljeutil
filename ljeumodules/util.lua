@@ -14,7 +14,6 @@ local ScrH = ScrH
 local rawequal = rawequal
 
 local ENTITY = cloned_mts.Entity
-local NPC = cloned_mts.NPC
 
 --> pre-allocate a table for random_string - this makes the function really fast
 local rstringtable = {}
@@ -79,9 +78,6 @@ function lje.util.random_string(length)
 
     local i = 1
     ::fast_random_string::
-    --> old method - includes some characters which cause issues
-    --rstringtable[i] = string_char(math_random(32, 126))
-
     rstringtable[i] = randomstringcharacters[math_random(1, randomstringcharactercount)]
 
     if (i == length) then
@@ -118,10 +114,11 @@ function lje.util.is_player(entity)
     return entity_GetClass(entity) == "player"
 end
 
-local NPC___index = NPC.__original_index
-local NPC___tostring = NPC.__tostring
+local npcdict = setmetatable({}, {__mode = "k"})
+local debug_getmetatable = debug.getmetatable
+local npc_metatable = FindMetaTable("NPC")
 function lje.util.is_npc(entity)
-    return rawequal(NPC___index(entity, "__tostring"), NPC___tostring)
+    return npcdict[entity] == true
 end
 
 --> stripped-down copy of the color function - this is enough for it to be used with any c-function
@@ -183,7 +180,8 @@ hook.pre("OnEntityCreated", "__ljeutil_entities", function(entity)
 
         hook.callpre("ljeutil/playerconnect", entity)
         hook.callpost("ljeutil/playerconnect", entity)
-    elseif (util_is_npc(entity)) then
+    elseif (debug_getmetatable(entity) == npc_metatable) then
+        npcdict[entity] = true
         npccount = npccount + 1
         npcs[npccount] = entity
     end
@@ -201,7 +199,8 @@ hook.pre("EntityRemoved", "__ljeutil_entities", function(entity, fullupdate)
             hook.callpre("ljeutil/playerdisconnect", entity)
             hook.callpost("ljeutil/playerdisconnect", entity)
         end
-    elseif (util_is_npc(entity)) then
+    elseif (npcdict[entity]) then
+        npcdict[entity] = nil
         searchandremove(npcs, entity, npccount)
         npccount = npccount - 1
     end

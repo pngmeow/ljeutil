@@ -6,12 +6,10 @@
 --> there is quite a lot of duplicated code here since the alternatives are slower and a hooking library should be designed with speed in mind
 --> both the hook library itself and the registry searching method are optimised a pretty good amount
 
+--> unpack is never used because it is really slow
+
 --> micro-optimisations since a lot of functions are detoured
 local detour = lje.detour
-local enablehooks = lje.hooks.enable
-local disablehooks = lje.hooks.disable
-local enablemetatables = lje.env.enable_metatables
-local disablemetatables = lje.env.disable_metatables
 local registry = lje.util.get_registry()
 
 local environment = lje.env.get()
@@ -21,9 +19,6 @@ local next = next
 local isfunction = isfunction
 local rawequal = rawequal
 local select = select
-local unpack = unpack
-
-local originalcall = nil
 
 local hook = {
     list = {}, --> event table
@@ -93,14 +88,6 @@ end
 --> Call this to allow lua functions to be in the callstack when a hook is called
 function hook.allowlua()
     ignorelua = false
-end
-
-local doimmediatereturn = false
-local imm_a, imm_b, imm_c, imm_d, imm_e, imm_f = nil, nil, nil, nil, nil, nil
---> Call this in hook.pre events to allow other lje hooks to be called, but overwrite their returns and prevent the default gmod callbacks from being executed
-function hook.immediatereturn(a, b, c, d, e, f)
-    doimmediatereturn = true
-    imm_a, imm_b, imm_c, imm_d, imm_e, imm_f = a, b, c, d, e, f
 end
 
 function hook.pre(event, identifier, callback)
@@ -219,50 +206,8 @@ end
 hook.removebefore = hook.removepre
 hook.removeafter = hook.removepost
 
-function hook.callpre(event, ...)
-    local hooks = hook.list[event]
-    if (not hooks) then
-        return
-    end
-
-    local length = hooks[PRE_HOOKS_LEN]
-    if (length == 0) then
-        return
-    end
-
-    local sequential = hooks[PRE_HOOKS_SEQ]
-    local i = 1
-    ::call_pre::
-    sequential[i](...)
-    if (i == length) then
-        return
-    end
-
-    i = i + 1
-    goto call_pre
-end
-
-function hook.callpost(event, ...)
-    local hooks = hook.list[event]
-    if (not hooks) then
-        return
-    end
-
-    local length = hooks[POST_HOOKS_LEN]
-    if (length == 0) then
-        return
-    end
-
-    local sequential = hooks[POST_HOOKS_SEQ]
-    local i = 1
-    ::call_post::
-    sequential[i](...)
-    if (i == length) then
-        return
-    end
-
-    i = i + 1
-    goto call_post
+local function doerror(message)
+    lje.con_printf("$red{%s}", message)
 end
 
 local function executepre(hooks, ...)
@@ -271,21 +216,20 @@ local function executepre(hooks, ...)
         return
     end
 
-    disablemetatables()
-
-    local a1, b1, c1, d1, e1, f1
-    local override = nil
     local callbacks = hooks[PRE_HOOKS_SEQ]
     local index = 1
     ::h_execute_pre::
-    local a2, b2, c2, d2, e2, f2 = callbacks[index](...)
-    if (a) then
-        a1, b1, c1, d1, e1, f1 = a2, b2, c2, d2, e2, f2
+    local success, a, b, c, d, e, f = pcall(callbacks[index], ...)
+    if (success) then
+        if (a) then
+            return a, b, c, d, e, f
+        end
+    else
+        doerror(a)
     end
 
     if (index == length) then
-        enablemetatables()
-        return a1, b1, c1, d1, e1, f1
+        return
     end
 
     index = index + 1
@@ -298,38 +242,56 @@ local function executepost(hooks, ...)
         return
     end
 
-    disablemetatables()
-
-    local a1, b1, c1, d1, e1, f1
-    local override = nil
     local callbacks = hooks[POST_HOOKS_SEQ]
     local index = 1
     ::h_execute_post::
-    local a2, b2, c2, d2, e2, f2 = callbacks[index](...)
-    if (a) then
-        a1, b1, c1, d1, e1, f1 = a2, b2, c2, d2, e2, f2
+    local success, a, b, c, d, e, f = pcall(callbacks[index], ...)
+    if (success) then
+        if (a) then
+            return a, b, c, d, e, f
+        end
+    else
+        doerror(a)
     end
 
     if (index == length) then
-        enablemetatables()
-        return a1, b1, c1, d1, e1, f1
+        return
     end
 
     index = index + 1
     goto h_execute_post
 end
 
+function hook.callpre(event, ...)
+    local hooks = hook.list[event]
+    if (not hooks) then
+        return
+    end
+
+    return executepre(hooks, ...)
+end
+
+function hook.callpost(event, ...)
+    local hooks = hook.list[event]
+    if (not hooks) then
+        return
+    end
+
+    return executepost(hooks, ...)
+end
+
 local hooklist = hook.list
---local debug_getinfo = debug.getinfo
 local is_lua_involved = lje.env.is_lua_involved
 local ignore_fn_once = lje.hooks.ignore_fn_once
-local function calldetour(event, gm, ...)
+local function calldetour(originalcall, event, gm, ...)
     if (disabled) then
+        --> Calling the default gmod callback is disabled
         if (disablelje) then
+            --> Hooks added with this library are disabled too - no extra computation is needed
             return
         end
 
-        if (ignorelua and is_lua_involved(1)) then
+        if (ignorelua and is_lua_involved(2)) then
             return originalcall(event, gm, ...)
         end
 
@@ -338,19 +300,15 @@ local function calldetour(event, gm, ...)
             return originalcall(event, gm, ...)
         end
 
-        disablehooks()
-            local a, b, c, d, e, f = executepre(hooks, ...)
-            if (doimmediatereturn) then
-                doimmediatereturn = false
-                enablehooks()
-                return imm_a, imm_b, imm_c, imm_d, imm_e, imm_f
-            end
-            a, b, c, d, e, f = executepost(hooks, ...) or override
-        enablehooks()
+        local a, b, c, d, e, f = executepre(hooks, ...)
+        if (a) then
+            return a, b, c, d, e, f
+        end
 
-        return a, b, c, d, e, f
+        return executepost(hooks, ...)
     else
-        if (ignorelua and is_lua_involved(1)) then
+        --> We need to call the default gmod callbacks
+        if (ignorelua and is_lua_involved(2)) then
             return originalcall(event, gm, ...)
         end
 
@@ -359,97 +317,31 @@ local function calldetour(event, gm, ...)
             return originalcall(event, gm, ...)
         end
 
-        disablehooks()
-            local a, b, c, d, e, f = executepre(hooks, ...)
-            if (doimmediatereturn) then
-                doimmediatereturn = false
-                enablehooks()
-                return imm_a, imm_b, imm_c, imm_d, imm_e, imm_f
-            end
-        enablehooks()
-
-        a, b, c, d, e, f = originalcall(event, gm, ...)
-
-        disablehooks()
-            a, b, c, d, e, f = executepost(hooks, ...) or override
-        enablehooks()
-
-        if (override) then
-            ignore_fn_once(unpack)
-            return unpack(override)
+        local a, b, c, d, e, f = executepre(hooks, ...)
+        if (a) then
+            return a, b, c, d, e, f
         end
 
-        return a, b, c, d, e, f
-    end
-end
+        local a2, b2, c2, d2, e2, f2 = originalcall(event, gm, ...)
 
---> searches the registry for hook.Call - this is called repeatedly until hook.Call is found
-local detoured = setmetatable({}, {__mode = "v"})
-local function searchregistry()
-    local key, value = next(registry)
-    ::r_search:: --> gotos are really fast
-    if (key) then
-        if (not detoured[key] and isfunction(value)) then
-            --> we need to detour all functions, not just lua ones since servers can do some
-            --> trickery where they set hook.Call to an invalid value at first to mess with
-            --> people detouring hook.Call
-            local original = value
-            local originalkey = key
-            detoured[originalkey] = original
-            registry[originalkey] = detour(original, function(...) --> vararg is used to maintain arg count
-                disablehooks()
-
-                if (select("#", ...) < 2) then
-                    --> this isn't hook.Call, remove this detour
-                    registry[originalkey] = original
-                    enablehooks()
-                    return original(...)
-                end
-
-                if (rawequal(..., "PostRender")) then
-                    --> this is hook.Call, restore all detours, and exit
-                    originalcall = original
-                    registry[originalkey] = detour(original, calldetour)
-                    detoured[originalkey] = nil
-                    
-                    local r_key, r_value = next(detoured)
-                    ::r_restore::
-                    if (r_key) then
-                        if (rawequal(registry[r_key], r_value)) then --> detour == original in lje
-                            registry[r_key] = r_value
-                        end
-                        r_key, r_value = next(detoured, r_key)
-                        goto r_restore
-                    end
-
-                    if (IsValid(LocalPlayer())) then
-                        hook.callpre("InitPostEntity")
-                        hook.callpost("InitPostEntity")
-                    end
-
-                    detoured = {}
-
-                    enablehooks()
-                    return original(...)
-                end
-
-                enablehooks()
-                return original(...)
-            end)
+        a, b, c, d, e, f = executepost(hooks, ...) or override
+        if (a) then
+            return a, b, c, d, e, f
         end
 
-        key, value = next(registry, key)
-        goto r_search
+        return a2, b2, c2, d2, e2, f2
     end
 end
 
-local function searchloop()
-    disablehooks()
-    if (not originalcall) then
-        searchregistry()
-        timer.Simple(0.1, searchloop)
+local _G = _G
+lje.vm.add_engine_call_hook(function(func, nargs, nresults, ...)
+    local hook = rawget(_G,  "hook")
+    if (hook) then
+        local call = rawget(hook, "Call")
+        if (func == call) then --> even if func had __eq we would be fine as both sides need to have the same metamethod for it to work
+            return false, calldetour(func, ...)
+        end
     end
-    enablehooks()
-end
 
-searchloop()
+    return true
+end)

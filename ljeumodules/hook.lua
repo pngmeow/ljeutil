@@ -100,14 +100,15 @@ function hook.pre(event, identifier, callback)
 
     local hooks = hook.list[event]
     if (hooks) then
-        local index = hooks[PRE_HOOKS_MAP][identifier]
+        local map = hooks[PRE_HOOKS_MAP]
+        local index = map[identifier]
         if (index) then
             hooks[PRE_HOOKS_SEQ][index] = callback
         else
             local length = hooks[PRE_HOOKS_LEN] + 1
             hooks[PRE_HOOKS_LEN] = length
             hooks[PRE_HOOKS_SEQ][length] = callback
-            hooks[PRE_HOOKS_MAP][identifier] = length
+            map[identifier] = length
         end
     else
         hook.list[event] = {
@@ -135,14 +136,15 @@ function hook.post(event, identifier, callback)
 
     local hooks = hook.list[event]
     if (hooks) then
-        local index = hooks[PRE_HOOKS_MAP][identifier]
+        local map = hooks[POST_HOOKS_MAP]
+        local index = map[identifier]
         if (index) then
             hooks[POST_HOOKS_SEQ][index] = callback
         else
             local length = hooks[POST_HOOKS_LEN] + 1
             hooks[POST_HOOKS_LEN] = length
             hooks[POST_HOOKS_SEQ][length] = callback
-            hooks[POST_HOOKS_MAP][identifier] = length
+            map[identifier] = length
         end
     else
         hook.list[event] = {

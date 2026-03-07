@@ -1,9 +1,6 @@
---*> draw.lua <*--
---*> re-implements the entire draw library, with all functions being optimised <*--
---*> made by eyoko1 <*--
-
---> i recommend that you do not use the draw library, and instead batch draw text using surface, although most functions here are a good amount faster than the default ones
---> co-ordinates are not rounded in these drawing functions so if you need that, do that before passing them
+--> [draw.lua] <--
+--> Reimplements every draw.* function <--
+--> Functions in the draw.* library are expensive so avoid using them <--
 
 local surface_SetFont = surface.SetFont
 local surface_GetTextSize = surface.GetTextSize
@@ -18,12 +15,7 @@ local surface_DrawTexturedRectUV = surface.DrawTexturedRectUV
 local string_find = string.find
 local string_sub = string.sub
 local math_ceil = math.ceil
-local math_floor = math.floor
-local math_max = math.max
-local math_min = math.min
 local tostring = tostring
-
-local color_strict = lje.util.color_strict
 
 local TEXT_ALIGN_LEFT = 0
 local TEXT_ALIGN_CENTER = 1
@@ -34,7 +26,6 @@ local TEXT_ALIGN_BOTTOM = 4
 local tabwidth = 50
 
 local white = lje.util.color_strict(255, 255, 255, 255)
-local black = lje.util.color_strict(0, 0, 0, 255)
 
 local environment = lje.env.get()
 local draw = {
@@ -54,11 +45,11 @@ environment.draw = draw
 
 function draw.SimpleText(text, font, x, y, colour, xalign, yalign)
     text = tostring(text)
-    font = font or "DermaDefault"
-    x = x or 0
-    y = y or 0
+    -- who doesn't provide these?
+    --x = x or 0
+    --y = y or 0
 
-    surface_SetFont(font)
+    surface_SetFont(font or "DermaDefault")
 
     local width, height = surface_GetTextSize(text)
     if (xalign == TEXT_ALIGN_CENTER) then
@@ -87,19 +78,21 @@ end
 
 function draw.SimpleTextOutlined(text, font, x, y, colour, xalign, yalign, outlinewidth, outlinecolour)
     text = tostring(text)
-    font = font or "DermaDefault"
-    x = math_ceil(x or 0)
-    y = math_ceil(y or 0)
-    colour = colour or white
-    xalign = xalign or TEXT_ALIGN_LEFT
-    yalign = yalign or TEXT_ALIGN_TOP
+    -- who doesn't provide these?
+    --x = math_ceil(x or 0)
+    --y = math_ceil(y or 0)
+    --colour = colour or white
+    --xalign = xalign or TEXT_ALIGN_LEFT
+    --yalign = yalign or TEXT_ALIGN_TOP
+    x = x + 1 - (x % 1)
+    y = y + 1 - (y % 1)
 
     local steps = (outlinewidth * 2) / 3
     if (steps < 1) then
         steps = 1
     end
 
-    surface_SetFont(font)
+    surface_SetFont(font or "DermaDefault")
 
     local width, height = surface_GetTextSize(text)
     if (xalign == TEXT_ALIGN_CENTER) then
@@ -115,19 +108,23 @@ function draw.SimpleTextOutlined(text, font, x, y, colour, xalign, yalign, outli
 
     surface_SetTextColor(outlinecolour)
 
-    local _x = -outlinewidth
-    local _y = -outlinewidth
+    local outlinewidthx = outlinewidth + x
+    local outlinewidthy = outlinewidth + y
+
+    local xcache = x - outlinewidth
+    local resety = y - outlinewidth
     ::outlinex::
+    local ycache = resety
     ::outliney::
-    surface_SetTextPos(x + _x, y + _y)
+    surface_SetTextPos(xcache, ycache)
     surface_DrawText(text)
-    if (_y < outlinewidth) then
-        _y = _y + steps
+    if (ycache < outlinewidthy) then
+        ycache = ycache + steps
         goto outliney
     end
-    if (_x < outlinewidth) then
-        _x = _x + steps
-        _y = -outlinewidth
+    if (xcache < outlinewidthx) then
+        xcache = xcache + steps
+        ycache = resety
         goto outlinex
     end
 
@@ -161,12 +158,9 @@ local function __drawtext(text, x, y, xalign)
 end
 
 function draw.DrawText(text, font, x, y, colour, xalign)
-    font = font or "DermaDefault"
     text = tostring(text)
-    x = x or 0
-    y = y or 0
-    colour = colour or white
-    xalign = xalign or TEXT_ALIGN_LEFT
+    font = font or "DermaDefault"
+    -- When would anyone ever not pass the other arguments?
 
     surface_SetFont(font)
     local lineheight = cachednlheights[font] or __getcachednlheight(font)
@@ -175,44 +169,41 @@ function draw.DrawText(text, font, x, y, colour, xalign)
     local currenty = y
 
     surface_SetTextColor(colour)
-    
+
     local length = #text
     local i = 1
-    while (true) do
-        local nextnewline = string_find(text, "\n", i)
-        local substring = string_sub(text, i, nextnewline or length)
+    ::outer::
+    local nextnewline = string_find(text, "\n", i)
+    local substring = string_sub(text, i, nextnewline or length)
 
-        local sslength = #substring
-        local j = 1
-        while (true) do
-            local nexttab = string_find(substring, "\t", j)
-            if (nexttab) then
-                if (nexttab ~= j) then
-                    local substring2 = string_sub(substring, j, nexttab)
-                    local size = __drawtext(substring2, currentx, currenty, xalign)
-                    currentx = currentx + size
-                end
-
-                j = nexttab + 1
-                currentx = currentx + tabwidth
-            else
-                __drawtext(string_sub(substring, j, sslength), currentx, currenty, xalign)
-                break
-            end
+    local substringlength = #substring
+    local j = 1
+    ::inner::
+    local nexttab = string_find(substring, "\t", j)
+    if (nexttab) then
+        if (nexttab ~= j) then
+            local substring2 = string_sub(substring, j, nexttab)
+            currentx = currentx + __drawtext(substring2, currentx, currenty, xalign)
         end
 
-        if (nextnewline) then
-            i = nextnewline + 1
-            currentx = x
-            currenty = currenty + lineheight
-        else
-            break
-        end
+        j = nexttab + 1
+        currentx = currentx + 50--[[tabwidth]]
+        goto inner
+    else
+        __drawtext(string_sub(substring, j, substringlength), currentx, currenty, xalign)
+        -- Fall through
+    end
+
+    if (nextnewline) then
+        i = nextnewline + 1
+        currentx = x
+        currenty = currenty + lineheight
+        goto outer
     end
 end
 
 local cachedheights = {}
-function __getcachedheight(font)
+local function __getcachedheight(font)
     surface_SetFont(font)
     local _, height = surface_GetTextSize("W")
     cachedheights[font] = height
@@ -234,28 +225,44 @@ local corner16 = surface.GetTextureID("gui/corner16")
 local corner32 = surface.GetTextureID("gui/corner32")
 local corner64 = surface.GetTextureID("gui/corner64")
 local corner512 = surface.GetTextureID("gui/corner512")
-function draw.RoundedBoxEx(bordersize, x, y, width, height, topleft, topright, bottomleft, bottomright)
+function draw.RoundedBoxEx(bordersize, x, y, width, height, color, topleft, topright, bottomleft, bottomright)
     surface_SetDrawColor(color.r, color.g, color.b, color.a)
 
     if (bordersize <= 0) then
         surface_DrawRect(x, y, width, height)
         return
     end
+    
+    -- This can be simplified but it doesn't matter and has no effect on performance
+    if (width < height) then
+        if (width < bordersize) then
+            bordersize = width * 0.5
+            bordersize = bordersize - (bordersize % 1)
+        else
+            bordersize = bordersize - (bordersize % 1)
+        end
+    else
+        if (height < bordersize) then
+            bordersize = height * 0.5
+            bordersize = bordersize - (bordersize % 1)
+        else
+            bordersize = bordersize - (bordersize % 1)
+        end
+    end
 
-    bordersize = math_min(math_floor(bordersize), math_floor(width / 2), math_floor(height / 2))
     local twobordersize = bordersize * 2
     surface_DrawRect(x + bordersize, y, width - twobordersize, height)
     surface_DrawRect(x, y + bordersize, bordersize, height - twobordersize)
-    surface_DrawRect(x + w - bordersize, y + bordersize, bordersize, h - twobordersize)
+    surface_DrawRect(x + width - bordersize, y + bordersize, bordersize, height - twobordersize)
 
     local texture = corner8
     if (bordersize > 64) then
         texture = corner512
     elseif (bordersize > 32) then
         texture = corner64
-    elseif (border > 16) then
+    elseif (bordersize > 16) then
         texture = corner32
-    elseif (border > 8) then
+    elseif (bordersize > 8) then
         texture = corner16
     end
 
@@ -293,21 +300,37 @@ function draw.RoundedBox(bordersize, x, y, width, height, color)
         surface_DrawRect(x, y, width, height)
         return
     end
+    
+    -- This can be simplified but it doesn't matter and has no effect on performance
+    if (width < height) then
+        if (width < bordersize) then
+            bordersize = width * 0.5
+            bordersize = bordersize - (bordersize % 1)
+        else
+            bordersize = bordersize - (bordersize % 1)
+        end
+    else
+        if (height < bordersize) then
+            bordersize = height * 0.5
+            bordersize = bordersize - (bordersize % 1)
+        else
+            bordersize = bordersize - (bordersize % 1)
+        end
+    end
 
-    bordersize = math_min(math_floor(bordersize), math_floor(width / 2), math_floor(height / 2))
     local twobordersize = bordersize * 2
     surface_DrawRect(x + bordersize, y, width - twobordersize, height)
     surface_DrawRect(x, y + bordersize, bordersize, height - twobordersize)
-    surface_DrawRect(x + w - bordersize, y + bordersize, bordersize, h - twobordersize)
+    surface_DrawRect(x + width - bordersize, y + bordersize, bordersize, height - twobordersize)
 
     local texture = corner8
     if (bordersize > 64) then
         texture = corner512
     elseif (bordersize > 32) then
         texture = corner64
-    elseif (border > 16) then
+    elseif (bordersize > 16) then
         texture = corner32
-    elseif (border > 8) then
+    elseif (bordersize > 8) then
         texture = corner16
     end
 
@@ -325,24 +348,34 @@ function draw.Text(textdata)
     return SimpleText(textdata.text, textdata.font, pos[1], pos[2], textdata.color, textdata.xalign, textdata.yalign)
 end
 
-local Text = draw.Text
-local textshadowcolor = color_strict(0, 0, 0, 200)
-local textshadowpos = {0, 0}
-function draw.TextShadow(textdata, distance, alpha) --> i haven't really optimised this function since you shouldn't be using it
-    local color = textdata.color
+local textshadowcolor = Color(0, 0, 0, 200)
+function draw.TextShadow(textdata, distance, alpha)
+    -- The calls to draw.Text have been inlined to improve performance
+    local text = textdata.text
+    local font = textdata.font
     local pos = textdata.pos
+    local x = pos[1]
+    local y = pos[2]
+    local xalign = textdata.xalign
+    local yalign = textdata.yalign
     textshadowcolor.a = alpha or 200
-    textdata.color = textshadowcolor
-    textshadowpos[1] = pos[1] + distance
-    textshadowpos[2] = pos[2] + distance
-    textdata.pos = textshadowpos
-
-    Text(textdata)
-
-    textdata.color = color
-    textdata.pos = pos
-
-    return Text(textdata)
+    SimpleText(
+        text,
+        font,
+        x + distance,
+        y + distance,
+        textshadowcolor,
+        xalign,
+        yalign
+    )
+    return SimpleText(
+        text, font,
+        x,
+        y,
+        textdata.color,
+        xalign,
+        yalign
+    )
 end
 
 function draw.TexturedQuad(texturedata)

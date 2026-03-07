@@ -1,6 +1,6 @@
---*> media.lua <*--
---*> lets you load media such as images and sound without it being exposed to the server <*--
---*> made by eyoko1 <*--
+--> [media.lua] <--
+--> Adds functions which let you load media (sound, images, etc) without it being exposed to the server <--
+--> This currently is not functional as LJE has no file system <--
 
 lje.media = {
     load = function(path, callback) end --> path is a location within the lje filesystem -> callback is passed the virtual path to be used with Material and Sound

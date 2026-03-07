@@ -1,21 +1,17 @@
---*> main.lua <*--
---*> lje util library containing many optimisations and helpful functions <*--
---*> made by eyoko1 <*--
+--> [main.lua] <--
+--> Loads all ljeutil-related files <--
 
---> TODO: Add custom config files to avoid having to create fingerprintable gmod config files
+local exists = hook ~= nil
 
-local environment = lje.env.get()
-if (environment.__ljeutils) then
-    return
+lje.include("modules/string.lua")
+lje.include("modules/math.lua")
+if (not exists) then --> these should not be hot-reloaded
+    lje.include("modules/hook.lua")
+    lje.include("modules/util.lua")
 end
-
-environment.__ljeutils = true
-
-lje.include("ljeumodules/string.lua")
-lje.include("ljeumodules/math.lua")
-lje.include("ljeumodules/hook.lua")
-lje.include("ljeumodules/util.lua")
-lje.include("ljeumodules/render.lua")
-lje.include("ljeumodules/draw.lua")
-lje.include("ljeumodules/file.lua")
-lje.include("ljeumodules/media.lua")
+lje.include("modules/render.lua")
+lje.include("modules/draw.lua")
+lje.include("modules/file.lua")
+lje.include("modules/media.lua")
+lje.include("modules/security.lua")
+lje.include("modules/convars.lua")

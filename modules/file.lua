@@ -1,6 +1,5 @@
---*> file.lua <*--
---*> re-implements some file functions <*--
---*> made by eyoko1 <*--
+--> [file.lua] <--
+--> Re-implements some file.* functions <--
 
 local FILE = cloned_mts.File
 

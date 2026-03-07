@@ -1,0 +1,102 @@
+--> [security.lua] <--
+--> Adds various security features for LJE <--
+
+local rawget = rawget
+local rawequal = rawequal
+local isentity = isentity
+local _G = _G
+local calldetour = hook.__calldetour
+local callpre = hook.callpre
+local callpost = hook.callpost
+local handlecall = lje.vm.handle_engine_call
+local is_lje_involved = lje.env.is_lje_involved
+
+local ENTITY = cloned_mts.Entity
+local ENTITY_DrawModel = ENTITY.DrawModel
+
+local recognisedcalls = setmetatable({}, {__mode = "k"})
+
+local foundhook = false
+local detours = {
+    generic = function()
+        if (is_lje_involved(3)) then
+            handlecall()
+        end
+    end,
+
+    hookcall = function(func, ...)
+        handlecall()
+        return calldetour(func, ...)
+    end,
+    draw = function(func, entity, flags)
+        if (is_lje_involved(3)) then
+            ENTITY_DrawModel(entity, flags)
+            handlecall()
+        end
+    end
+}
+
+--> These two functions could be made faster if they called set_engine_call_hook and made it a nop, but currently set_engine_call_hook cannot be called at runtime
+
+local disableenginecalls = false
+
+--> Disables all engine calls
+function lje.util.disable_engine_calls()
+    disableenginecalls = true
+end
+
+--> Re-enables engine calls
+function lje.util.enable_engine_calls()
+    disableenginecalls = false
+end
+
+lje.vm.set_engine_call_hook(function(func, nargs, nresults, ...)
+    ::do_hook::
+    if (disableenginecalls) then
+        return
+    end
+
+    local callback = recognisedcalls[func]
+    if (callback) then
+        return callback(func, ...)
+    end
+
+    --> This area is not regularly reached so performance isn't too much of a concern
+    --> This is because when a function is registered, it is automatically handled at the do_hook label
+
+    --> Detouring hook.Call
+    if (not foundhook) then
+        local hook = rawget(_G,  "hook")
+        if (hook) then
+            local call = rawget(hook, "Call")
+            if (rawequal(func, call)) then
+                foundhook = true
+                recognisedcalls[func] = detours.hookcall
+                goto do_hook
+            end
+        end
+    end
+
+    --> Detouring ENT:Draw for safe LJE (re)rendering
+    if (isentity(...)) then
+        --local entity = ... --> This is not necessary
+
+        --> Temporary fix - Please change this ASAP
+        if (rawequal(func, FindMetaTable("Entity").__index(..., "Draw"))) then
+            recognisedcalls[func] = detours.draw
+            goto do_hook
+        end
+
+        --> Temporary fix - Please change this ASAP
+        if (rawequal(func, FindMetaTable("Entity").__index(..., "DrawTranslucent"))) then
+            recognisedcalls[func] = detours.draw
+            goto do_hook
+        end
+    end
+
+    local func = callpre("ljeutil/unknownenginecall", func, nargs, nresults, ...)
+    if (not func) then
+        func = callpost("ljeutil/unknownenginecall", func, nargs, nresults, ...)
+    end
+    recognisedcalls[func] = func or detours.generic
+end)

@@ -1,20 +1,54 @@
 # ljeutil
-A utility library for LJE re-adding many GLua functions, and optimising them, as well as adding additional functions which are useful.
+A utility library made for [LJ-Expand](https://github.com/lj-expand/lj-expand/) which re-adds a lot of functions implemented purely in GLua, as well as new functions which would be useful, and provides security features which would otherwise need to be manually created
 
 # Best practices
-- If you are rendering anything to the screen, use lje.util.rendertarget
+- When rendering anything to the screen, push 'lje.util.rendertarget' to the screen before, and then pop it after
 - Use the utility functions provided by ljeutil instead of making your own implementations
 - Do not modify the table returned by player.GetAll
 - Disabling debug hooks, metatables, and saving/restoring the random state is not necessary for lua hooks, but should still be done in other places such as detours
+- If you have any issues with this library you can contact me through the LJE Discord server, or directly with my username: 'eyoko1'
+- Use sumneko's lua language server (and the Garry's Mod addon) to get annotations for ljeutil
 
 # List of added hooks
 ```lua
 --> format: {comment, name, ...args}
 {
-    --> called when lje.util.rendertarget is drawn to the screen
-    "ljeutil/render",
-    "ljeutil/playerconnect",
-    "ljeutil/playerdisconnect"
+    --> Called when the safe render target is drawn to the screen
+    "ljeutil/render", --> (): nil
+    ----------------------------------------------------------------------
+    --> Called when a player joins the server
+    --> [1] player: Player
+    "ljeutil/playerconnect", --> (player: Player): nil
+    ----------------------------------------------------------------------
+    --> Called when a player leaves the server
+    --> [1] player: Player
+    "ljeutil/playerdisconnect", --> (player: Player): nil
+    ----------------------------------------------------------------------
+    --> Called when an engine call targets a function which is not currently recognised - arguments are shared with set_engine_call_hook
+    --> [1] func: fun(...): ...
+    --> [2] nargs: integer
+    --> [3] nresults: integer
+    --> [4] ...: any
+    --> Return either a function, or nil
+    "ljeutil/unknownenginecall",
+        --> Example:
+        hook.pre("ljeutil/unknownenginecall", "example", function(func, nargs, nresults, ...)
+            --> this function is rarely called so this doesn't matter too much
+            if (func == lje.get_global("matproxy", "Call")) then
+                return function(func, ...)
+                    if (freecam:isenabled()) then
+                        lje.vm.handle_engine_call()
+                        return
+                    end
+                end
+            end
+        end)
+    ----------------------------------------------------------------------
+    --> Called when a convar is changed - exactly the same as cvars.OnConVarChanged / cvars.AddChangeCallback
+    --> [1] name: string
+    --> [2] oldvalue: string
+    --> [3] newvalue: string
+    "ljeutil/convarchanged"
 }
 ```
 
@@ -55,7 +89,6 @@ A utility library for LJE re-adding many GLua functions, and optimising them, as
 
 { --> hook
     list = {}, --> event table
-    disabled = false,
 
     pre = function(event, identifier, callback) end, --> adds an event to be run before normal gmod callbacks are ran for an event
                                                      --> if an identifier is not passed, one will be generated and returned
@@ -77,6 +110,7 @@ A utility library for LJE re-adding many GLua functions, and optimising them, as
 
     disable = function(disableljehooks) end, --> stops hooks from running - useful when re-rendering the scene, or using DrawModel - if disableljehooks is false (must be specified) then hooks registered with this library will still be called, otherwise if true or not specified, they will not be called
     enable = function() end, --> re-enables hooks
+    isdisabled = function() end, --> returns whether or not hooks are disabled
 
     disallowlua = function() end, --> sets a flag to true that prevents lje hooks from being called when lua is in the callstack (any lua, not just foreign lua)
     allowlua = function() end --> sets the above flag to false
@@ -90,14 +124,14 @@ A utility library for LJE re-adding many GLua functions, and optimising them, as
 { --> _G
     Color = function(r, g, b, a) end,
     IsValid = function(obj) end,
-    LocalPlayer = function() end, --> optimised - behaviour is not different
-    ScrW = function() end, --> optimised - behaviour is not different
-    ScrH = function() end --> optimised - behaviour is not different
+    LocalPlayer = function() end,
+    ScrW = function() end,
+    ScrH = function() end
 }
 
 { --> player
-    GetAll = function() end, --> very fast re-implementation (all it does is return an upvalue) - do not modify the value returned by this
-    GetCount = function() end --> very fast re-implementation (all it does is return an upvalue)
+    GetAll = function() end, --> do not modify the value returned by this
+    GetCount = function() end
 }
 
 { --> file
@@ -114,7 +148,10 @@ A utility library for LJE re-adding many GLua functions, and optimising them, as
     random_string = function(length) end, --> generates a random string with either the given length, or 32 characters if not specified
     color_strict = function(r, g, b, a) end, --> very fast implementation of color - all arguments must be specified and must be numbers - values are still clamped
     is_player = function(entity) end, --> should be used instead of ENTITY.IsPlayer or PLAYER.IsPlayer
-    is_npc = function(entity) end --> should be used instead of ENTITY.IsNPC or NPC.IsNPC
+    is_npc = function(entity) end, --> should be used instead of ENTITY.IsNPC or NPC.IsNPC
+    get_mutable_players = function() end, --> equivalent to player.GetAll, but the value returned can be modified
+    disable_engine_calls = function() end, --> disables all calls to engine functions
+    enable_engine_calls = function() end --> enables all calls to engine functions
 }
 
 { --> lje.media

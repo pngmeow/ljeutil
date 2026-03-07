@@ -1,6 +1,5 @@
---*> string.lua <*--
---*> adds a few string functions, all of which being much faster than their original versions <*--
---*> made by eyoko1 <*--
+--> [string.lua] <--
+--> Adds / optimises various string.* functions <--
 
 local string_sub = string.sub
 local string_find = string.find

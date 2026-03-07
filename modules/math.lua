@@ -1,6 +1,5 @@
---*> maths.lua <*--
---*> adds some math functions, with them being optimised as per usual <*--
---*> made by eyoko1 <*--
+--> [math.lua] <--
+--> Re-implements math.* functions <--
 
 local math_floor = math.floor
 local math_random = math.random

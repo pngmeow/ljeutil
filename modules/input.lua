@@ -109,9 +109,3 @@ hook.pre("StartCommand", "__ljeutil_input", function(_, cmd)
 
     hook_callpost("ljeutil/input", cmd)
 end)
-
-hook.pre("ljeutil/input", "test", function(cmd)
-    lje.input.setangle(Angle(0, 0, 0))
-    --lje.input.sendangle(Angle(0, 0.4, 0))
-    hook.removepre("ljeutil/input", "test")
-end)

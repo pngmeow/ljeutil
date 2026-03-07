@@ -82,14 +82,14 @@ lje.vm.set_engine_call_hook(function(func, nargs, nresults, ...)
     if (isentity(...)) then
         --local entity = ... --> This is not necessary
 
-        --> Temporary fix - Please change this ASAP
-        if (rawequal(func, ENTITY___index(..., "Draw"))) then
+        local draw = ENTITY___index(..., "Draw")
+        if (draw and rawequal(func, draw)) then
             recognisedcalls[func] = detours.draw
             goto do_hook
         end
 
-        --> Temporary fix - Please change this ASAP
-        if (rawequal(func, ENTITY___index(..., "DrawTranslucent"))) then
+        local drawtranslucent = ENTITY___index(..., "DrawTranslucent")
+        if (drawtranslucent and rawequal(func, drawtranslucent)) then
             recognisedcalls[func] = detours.draw
             goto do_hook
         end

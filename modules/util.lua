@@ -12,17 +12,15 @@ local rawequal = rawequal
 local ENTITY_DrawModel = ENTITY.DrawModel
 local disable_engine_calls = lje.util.disable_engine_calls
 local enable_engine_calls = lje.util.enable_engine_calls
+local create_table = lje.util.create_table
 local ENTITY_GetClass = ENTITY.GetClass
 local ents_GetCount = ents.GetCount
 
 local randomstringcharacters = {" ", "!", "#", "$", "%", "&", "+", ",", "-", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "@", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "^", "_", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"}
 local randomstringcharactercount = #randomstringcharacters
 
---> pre-allocate a table for random_string so it doesn't have to be allocated every time the function is called
-local rstringtable = {}
-for i = 1, 128 do
-    rstringtable[i] = "_"
-end
+--> Pre-allocated table for lje.util.random_string()
+local rstringtable = create_table(128, 0)
 
 local localplayer = LocalPlayer()
 
@@ -218,7 +216,7 @@ end
 --> Returns a mutable(!) array of all players - You can edit the value returned by this
 --- @return Player[]
 function lje.util.get_mutable_players()
-    local mutable = {} --> use lje.util.create_table when such function is added
+    local mutable = create_table(playercount, 0)
     local i = 1
     ::get_mutable_players::
     mutable[i] = players[i]
@@ -249,7 +247,7 @@ end
 --> Returns a mutable(!) array of all entities on the server - You can edit the value returned by this
 --- @return Entity[]
 function lje.util.get_mutable_entities()
-    local mutable = {} --> use lje.util.create_table for this maybe
+    local mutable = create_table(entitycount, 0)
     local i = 1
     ::get_mutable_entities::
     mutable[i] = entities[i]

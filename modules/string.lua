@@ -3,16 +3,16 @@
 
 local string_sub = string.sub
 local string_find = string.find
+local create_table = lje.util.create_table
 
 local table_concat = table.concat
 
 function string.ToTable(str)
     str = tostring(str)
 
-    local tbl = {}
-
     local length = #str
     local i = 1
+    local tbl = create_table(length, 0)
     ::totable_loop::
     tbl[i] = string_sub(str, i, i)
 

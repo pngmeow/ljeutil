@@ -13,6 +13,7 @@ A utility library made for [LJ-Expand](https://github.com/lj-expand/lj-expand/) 
 ```lua
 --> format: {comment, name, ...args}
 {
+    ----------------------------------------------------------------------
     --> Called when the safe render target is drawn to the screen
     "ljeutil/render", --> (): nil
     ----------------------------------------------------------------------
@@ -48,7 +49,12 @@ A utility library made for [LJ-Expand](https://github.com/lj-expand/lj-expand/) 
     --> [1] name: string
     --> [2] oldvalue: string
     --> [3] newvalue: string
-    "ljeutil/convarchanged"
+    "ljeutil/convarchanged",
+    ----------------------------------------------------------------------
+    --> Provides a context where you can use lje.input.* functions - only the pre hook provides this context
+    --> [1] cusercmd: CUserCmd
+    "ljeutil/input"
+    ----------------------------------------------------------------------
 }
 ```
 

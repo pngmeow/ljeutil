@@ -38,7 +38,7 @@ local draw = {
     RoundedBox = function(radius, x, y, width, height, color) end,
     Text = function(textdata) end, --> do not use this unless it is absolutely necessary
     TextShadow = function(textdata, distance, alpha) end, --> do not use this unless it is absolutely necessary
-    TexturedQuad = function(texturedata) end,
+    TexturedQuad = function(texturedata) end, --> do not use this unless it is absolutely necessary
     WordBox = function(bordersize, x, y, text, font, boxcolor, textcolor, xalign, yalign) end
 }
 environment.draw = draw
@@ -52,14 +52,14 @@ function draw.SimpleText(text, font, x, y, colour, xalign, yalign)
     surface_SetFont(font or "DermaDefault")
 
     local width, height = surface_GetTextSize(text)
-    if (xalign == TEXT_ALIGN_CENTER) then
+    if (xalign == 1--[[TEXT_ALIGN_CENTER]]) then
         x = x - (width * 0.5)
-    elseif (xalign == TEXT_ALIGN_RIGHT) then
+    elseif (xalign == 2--[[TEXT_ALIGN_RIGHT]]) then
         x = x - width
     end
-    if (yalign == TEXT_ALIGN_CENTER) then
+    if (yalign == 1--[[TEXT_ALIGN_CENTER]]) then
         y = y - (height * 0.5)
-    elseif (yalign == TEXT_ALIGN_BOTTOM) then
+    elseif (yalign == 4--[[TEXT_ALIGN_BOTTOM]]) then
         y = y - height
     end
 
@@ -95,14 +95,14 @@ function draw.SimpleTextOutlined(text, font, x, y, colour, xalign, yalign, outli
     surface_SetFont(font or "DermaDefault")
 
     local width, height = surface_GetTextSize(text)
-    if (xalign == TEXT_ALIGN_CENTER) then
+    if (xalign == 1--[[TEXT_ALIGN_CENTER]]) then
         x = x - (width * 0.5)
-    elseif (xalign == TEXT_ALIGN_RIGHT) then
+    elseif (xalign == 2--[[TEXT_ALIGN_RIGHT]]) then
         x = x - width
     end
-    if (yalign == TEXT_ALIGN_CENTER) then
+    if (yalign == 1--[[TEXT_ALIGN_CENTER]]) then
         y = y - (height * 0.5)
-    elseif (yalign == TEXT_ALIGN_BOTTOM) then
+    elseif (yalign == 4--[[TEXT_ALIGN_BOTTOM]]) then
         y = y - height
     end
 
@@ -145,9 +145,9 @@ end
 
 local function __drawtext(text, x, y, xalign)
     local size = surface_GetTextSize(text)
-    if (xalign == TEXT_ALIGN_CENTER) then
+    if (xalign == 1--[[TEXT_ALIGN_CENTER]]) then
         x = x - (size * 0.5)
-    elseif (xalign == TEXT_ALIGN_RIGHT) then
+    elseif (xalign == 2--[[TEXT_ALIGN_RIGHT]]) then
         x = x - size
     end
 
@@ -390,15 +390,15 @@ function draw.WordBox(bordersize, x, y, text, font, color, fontcolor, xalign, ya
     surface_SetFont(font)
     local width, height = surface_GetTextSize(text)
 
-    if (xalign == TEXT_ALIGN_CENTER) then
+    if (xalign == 1--[[TEXT_ALIGN_CENTER]]) then
 		x = x - (bordersize + width / 2)
-	elseif (xalign == TEXT_ALIGN_RIGHT) then
+	elseif (xalign == 2--[[TEXT_ALIGN_RIGHT]]) then
 		x = x - (bordersize * 2 + width)
 	end
 
-	if (yalign == TEXT_ALIGN_CENTER) then
+	if (yalign == 1--[[TEXT_ALIGN_CENTER]]) then
 		y = y - (bordersize + height / 2)
-	elseif (yalign == TEXT_ALIGN_BOTTOM) then
+	elseif (yalign == 4--[[TEXT_ALIGN_BOTTOM]]) then
 		y = y - (bordersize * 2 + height)
 	end
 

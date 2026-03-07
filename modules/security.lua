@@ -13,6 +13,7 @@ local is_lje_involved = lje.env.is_lje_involved
 
 local ENTITY = cloned_mts.Entity
 local ENTITY_DrawModel = ENTITY.DrawModel
+local ENTITY___index = ENTITY.__oldIndex
 
 local recognisedcalls = setmetatable({}, {__mode = "k"})
 
@@ -82,21 +83,19 @@ lje.vm.set_engine_call_hook(function(func, nargs, nresults, ...)
         --local entity = ... --> This is not necessary
 
         --> Temporary fix - Please change this ASAP
-        if (rawequal(func, FindMetaTable("Entity").__index(..., "Draw"))) then
+        if (rawequal(func, ENTITY___index(..., "Draw"))) then
             recognisedcalls[func] = detours.draw
             goto do_hook
         end
 
         --> Temporary fix - Please change this ASAP
-        if (rawequal(func, FindMetaTable("Entity").__index(..., "DrawTranslucent"))) then
+        if (rawequal(func, ENTITY___index(..., "DrawTranslucent"))) then
             recognisedcalls[func] = detours.draw
             goto do_hook
         end
     end
 
-    local func = callpre("ljeutil/unknownenginecall", func, nargs, nresults, ...)
-    if (not func) then
-        func = callpost("ljeutil/unknownenginecall", func, nargs, nresults, ...)
-    end
-    recognisedcalls[func] = func or detours.generic
+    local callback = callpre("ljeutil/unknownenginecall", func, nargs, nresults, ...) or
+                     callpost("ljeutil/unknownenginecall", func, nargs, nresults, ...)
+    recognisedcalls[func] = callback or detours.generic
 end)

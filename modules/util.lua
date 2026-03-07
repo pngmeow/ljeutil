@@ -137,12 +137,12 @@ function lje.util.random_string(length)
     ::fast_random_string::
     rstringtable[i] = randomstringcharacters[math_random(1, randomstringcharactercount)]
 
-    if (i == length) then
-        return table_concat(rstringtable, "", 1, length)
+    if (i ~= length) then
+        i = i + 1
+        goto fast_random_string
     end
 
-    i = i + 1
-    goto fast_random_string
+    return table_concat(rstringtable, "", 1, length)
 end
 
 --> Very fast implementation of color - all arguments must be provided as numbers

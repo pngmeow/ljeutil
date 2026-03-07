@@ -91,6 +91,10 @@ local function __addnode(root, identifier, callback)
     local node = root
     ::add_node::
     local nextnode = node[NODE_NEXT]
+    if (node[NODE_NAME] == identifier) then
+        node[NODE_CALLBACK] = callback
+        return
+    end
     if (not nextnode) then
         node[NODE_NEXT] = {identifier, callback, nil}
         return

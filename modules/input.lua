@@ -3,6 +3,7 @@
 
 local CONVAR = cloned_mts.ConVar
 local CUSERCMD = cloned_mts.CUserCmd
+local ANGLE = cloned_mts.Angle
 
 local math_ceil = math.ceil
 local rawequal = rawequal
@@ -16,6 +17,7 @@ local CUSERCMD_SetMouseY = CUSERCMD.SetMouseY
 local CUSERCMD_GetMouseX = CUSERCMD.GetMouseX
 local CUSERCMD_GetMouseY = CUSERCMD.GetMouseY
 local CONVAR_GetFloat = CONVAR.GetFloat
+local ANGLE_Normalize = ANGLE.Normalize
 
 local cv_sensitivity = GetConVar_Internal("sensitivity")
 local cv_myaw = GetConVar_Internal("m_yaw")
@@ -47,7 +49,7 @@ function lje.input.setangle(angle)
 
     desiredangle[1] = angle[1]
     desiredangle[2] = angle[2]
-    desiredangle[3] = angle[3]
+    --desiredangle[3] = angle[3]
     changedangle = true
 end
 
@@ -70,8 +72,11 @@ function lje.input.sendangle(delta)
         return
     end
 
-    desiredangle[1] = desiredangle[1] + delta[1]
+    desiredangle[1] = math.Clamp(desiredangle[1] + delta[1], -89, 89)
     desiredangle[2] = desiredangle[2] + delta[2]
+
+    ANGLE_Normalize(desiredangle)
+
     changedangle = true
 end
 

@@ -168,7 +168,7 @@ function draw.DrawText(text, font, x, y, colour, xalign)
     local currentx = x
     local currenty = y
 
-    surface_SetTextColor(colour)
+    surface_SetTextColor(colour or white)
 
     local length = #text
     local i = 1

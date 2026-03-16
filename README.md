@@ -17,6 +17,9 @@ A utility library made for [LJ-Expand](https://github.com/lj-expand/lj-expand/) 
     --> Called when the safe render target is drawn to the screen
     "ljeutil/render", --> (): nil
     ----------------------------------------------------------------------
+    --> Called immediately after 'ljeutil/render' hooks
+    "ljeutil/postrender", --> (): nil
+    ----------------------------------------------------------------------
     --> Called when a player joins the server
     --> [1] player: Player
     "ljeutil/playerconnect", --> (player: Player): nil

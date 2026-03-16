@@ -2,7 +2,16 @@
 --> Adds useful rendering utilities <--
 
 local safertname = lje.util.random_string()
-local safert = GetRenderTargetEx(safertname, ScrW(), ScrH(), RT_SIZE_DEFAULT, MATERIAL_RT_DEPTH_SHARED, bit.bor(16, 256, 65536), 0, IMAGE_FORMAT_RGBA8888)
+local safert = GetRenderTargetEx(
+    safertname,
+    ScrW(),
+    ScrH(),
+    RT_SIZE_FULL_FRAME_BUFFER,
+    MATERIAL_RT_DEPTH_SHARED,
+    bit.bor(16, 256, 32768),
+    0,
+    IMAGE_FORMAT_RGBA8888
+)
 local safertmaterial = CreateMaterial(
     lje.util.random_string(),
     "UnlitGeneric",
@@ -86,6 +95,7 @@ hook.post("PostRender", "__safert", function()
     cam_Start2D()
         render_PushRenderTarget(safert)
             hook_callpre("ljeutil/render")
+            hook_callpre("ljeutil/postrender")
 
             render_PushRenderTarget(nil) --> Push main frame buffer
                 if (overrideblend) then
@@ -103,6 +113,7 @@ hook.post("PostRender", "__safert", function()
             render_PopRenderTarget()
 
             hook_callpost("ljeutil/render")
+            hook_callpost("ljeutil/postrender")
 
             render_Clear(0, 0, 0, 0, true, true)
         render_PopRenderTarget()

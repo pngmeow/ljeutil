@@ -43,12 +43,11 @@ local function searchandremove(tbl, value, count)
         return
     end
 
-    local length = #tbl
     local i = 1
     ::remove::
     if (rawequal(tbl[i], value)) then
         table_remove(tbl, i)
-    elseif (i ~= length) then
+    elseif (i ~= count) then
         i = i + 1
         goto remove
     end

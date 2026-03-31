@@ -31,7 +31,7 @@ local otherplayercount = player_GetCount()
 local otherplayers = player_GetAll()
 
 local entities = ents.GetAll()
-local entitycount = ents.GetCount(true)
+local entitycount = #entities --ents.GetCount(true)
 
 local npccount = 0
 local npcs = {}

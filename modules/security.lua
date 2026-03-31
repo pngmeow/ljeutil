@@ -51,11 +51,11 @@ function lje.util.enable_engine_calls()
 end
 
 lje.vm.set_engine_call_hook(function(func, nargs, nresults, ...)
-    ::do_hook::
     if (disableenginecalls) then
         return
     end
 
+    ::do_hook::
     local callback = recognisedcalls[func]
     if (callback) then
         return callback(func, ...)

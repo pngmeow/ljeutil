@@ -39,7 +39,7 @@ local npcdict = setmetatable({}, {__mode = "k"})
 
 local table_remove = table.remove
 local function searchandremove(tbl, value, count)
-    if (count == 0) then
+    if (count <= 0) then
         return
     end
 

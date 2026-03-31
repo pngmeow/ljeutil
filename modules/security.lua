@@ -92,7 +92,7 @@ lje.vm.set_engine_call_hook(function(func, nargs, nresults, ...)
     end
 
     callback = callpre("ljeutil/unknownenginecall", func, nargs, nresults, ...) or
-                     callpost("ljeutil/unknownenginecall", func, nargs, nresults, ...)
+               callpost("ljeutil/unknownenginecall", func, nargs, nresults, ...)
     recognisedcalls[func] = callback or detours.generic
     goto do_hook
 end)

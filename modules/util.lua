@@ -129,6 +129,9 @@ end
 --- @return string
 function lje.util.random_string(length)
     length = length or 32
+    if (length <= 0) then
+        return ""
+    end
 
     local i = 1
     ::fast_random_string::
@@ -215,6 +218,10 @@ end
 --> Returns a mutable(!) array of all players - You can edit the value returned by this
 --- @return Player[]
 function lje.util.get_mutable_players()
+    if (playercount == 0) then
+        return {}
+    end
+
     local mutable = create_table(playercount, 0)
     local i = 1
     ::get_mutable_players::
@@ -246,6 +253,10 @@ end
 --> Returns a mutable(!) array of all entities on the server - You can edit the value returned by this
 --- @return Entity[]
 function lje.util.get_mutable_entities()
+    if (entitycount == 0) then
+        return {}
+    end
+
     local mutable = create_table(entitycount, 0)
     local i = 1
     ::get_mutable_entities::
@@ -283,7 +294,7 @@ end)
 
 hook.pre("EntityRemoved", "__ljeutil_entities", function(entity, fullupdate)
     if (util_is_player(entity)) then
-        if (not fullupdate and not rawequal(entity, localplayer)) then
+        if (not fullupdate--[[ and not rawequal(entity, localplayer)]]) then
             searchandremove(players, entity, playercount)
             searchandremove(otherplayers, entity, otherplayercount) --> this could be faster as both arrays are almost identical
             
@@ -340,7 +351,7 @@ hook.pre("InitPostEntity", "__ljeutil_localplayer", function()
     hook.removepre("InitPostEntity", "__ljeutil_localplayer")
 end)
 
---> a goto loop is used here because this is only executed once so the performance overhead is not a concern
+--> a for loop is used here because this is only executed once so the performance overhead is not a concern
 for _, entity in ipairs(ents.GetAll()) do
     if (lje.util.is_npc(entity)) then
         npccount = npccount + 1

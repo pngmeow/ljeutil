@@ -17,7 +17,6 @@ local ENTITY___index = ENTITY.__oldIndex
 
 local recognisedcalls = setmetatable({}, {__mode = "k"})
 
-local foundhook = false
 local detours = {
     generic = function()
         if (is_lje_involved(3)) then
@@ -65,16 +64,13 @@ lje.vm.set_engine_call_hook(function(func, nargs, nresults, ...)
     --> This area is not regularly reached so performance isn't too much of a concern
     --> This is because when a function is registered, it is automatically handled at the do_hook label
 
-    --> Detouring hook.Call
-    if (not foundhook) then
-        local hook = rawget(_G,  "hook")
-        if (hook) then
-            local call = rawget(hook, "Call")
-            if (rawequal(func, call)) then
-                foundhook = true
-                recognisedcalls[func] = detours.hookcall
-                goto do_hook
-            end
+    --> Detouring hook.Call - we cannot set up a variable that is set to true once this is found, since hook.Call can be changed at any time
+    local hook = rawget(_G,  "hook")
+    if (hook) then
+        local call = rawget(hook, "Call")
+        if (rawequal(func, call)) then
+            recognisedcalls[func] = detours.hookcall
+            goto do_hook
         end
     end
 
@@ -95,7 +91,8 @@ lje.vm.set_engine_call_hook(function(func, nargs, nresults, ...)
         end
     end
 
-    local callback = callpre("ljeutil/unknownenginecall", func, nargs, nresults, ...) or
+    callback = callpre("ljeutil/unknownenginecall", func, nargs, nresults, ...) or
                      callpost("ljeutil/unknownenginecall", func, nargs, nresults, ...)
     recognisedcalls[func] = callback or detours.generic
+    goto do_hook
 end)

@@ -39,18 +39,21 @@ local npcdict = setmetatable({}, {__mode = "k"})
 
 local table_remove = table.remove
 local function searchandremove(tbl, value, count)
-    if (count <= 0) then
-        return
+    if (count == 0) then
+        return count
     end
 
     local i = 1
     ::remove::
     if (rawequal(tbl[i], value)) then
         table_remove(tbl, i)
+        return count - 1
     elseif (i ~= count) then
         i = i + 1
         goto remove
     end
+
+    return count
 end
 
 local function falsey(obj)
@@ -282,7 +285,7 @@ hook.pre("OnEntityCreated", "__ljeutil_entities", function(entity)
 
         hook.callpre("ljeutil/playerconnect", entity)
         hook.callpost("ljeutil/playerconnect", entity)
-    elseif (debug_getmetatable(entity) == npc_metatable) then
+    elseif (rawequal(debug_getmetatable(entity), npc_metatable)) then
         npcdict[entity] = true
         npccount = npccount + 1
         npcs[npccount] = entity
@@ -295,23 +298,18 @@ end)
 hook.pre("EntityRemoved", "__ljeutil_entities", function(entity, fullupdate)
     if (util_is_player(entity)) then
         if (not fullupdate--[[ and not rawequal(entity, localplayer)]]) then
-            searchandremove(players, entity, playercount)
-            searchandremove(otherplayers, entity, otherplayercount) --> this could be faster as both arrays are almost identical
-            
-            playercount = playercount - 1
-            otherplayercount = otherplayercount - 1
+            playercount = searchandremove(players, entity, playercount)
+            otherplayercount = searchandremove(otherplayers, entity, otherplayercount) --> this could be faster as both arrays are almost identical
 
             hook.callpre("ljeutil/playerdisconnect", entity)
             hook.callpost("ljeutil/playerdisconnect", entity)
         end
     elseif (npcdict[entity]) then
         npcdict[entity] = nil
-        searchandremove(npcs, entity, npccount)
-        npccount = npccount - 1
+        npccount = searchandremove(npcs, entity, npccount)
     end
 
-    searchandremove(entities, entity, entitycount)
-    entitycount = entitycount - 1
+    entitycount = searchandremove(entities, entity, entitycount)
 end)
 
 local screenwidth = ScrW()
@@ -346,8 +344,7 @@ hook.pre("InitPostEntity", "__ljeutil_localplayer", function()
     otherplayercount = player_GetCount()
     otherplayers = player_GetAll()
     
-    searchandremove(otherplayers, localplayer, otherplayercount)
-    otherplayercount = otherplayercount - 1
+    otherplayercount = searchandremove(otherplayers, localplayer, otherplayercount)
     hook.removepre("InitPostEntity", "__ljeutil_localplayer")
 end)
 

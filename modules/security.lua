@@ -94,5 +94,5 @@ lje.vm.set_engine_call_hook(function(func, nargs, nresults, ...)
     callback = callpre("ljeutil/unknownenginecall", func, nargs, nresults, ...) or
                callpost("ljeutil/unknownenginecall", func, nargs, nresults, ...)
     recognisedcalls[func] = callback or detours.generic
-    --goto do_hook
+    --goto do_hook --> This is important for security but causes issues? @TODO: Fix this ASAP
 end)

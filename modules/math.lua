@@ -43,11 +43,11 @@ function math.NormalizeAngle(a)
 end
 
 function math.AngleDifference(a, b)
-    local diff = math.NormalizeAngle(a - b)
-    
+    local diff = ((a - b) + 180) % 360 - 180
+
     if (diff < 180) then
         return diff
     end
-    
+
     return diff - 360
 end
